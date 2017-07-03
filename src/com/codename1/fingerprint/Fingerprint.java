@@ -16,21 +16,23 @@ import com.codename1.util.SuccessCallback;
  * Implements the fingerprint scanning API
  */
 public class Fingerprint {
+
     private static InternalFingerprint impl;
+
     static {
         // prevents the iOS VM optimizer from optimizing away these callbacks...
         InternalCallback.scanFail();
         InternalCallback.scanSuccess();
     }
-    
+
     public static boolean isAvailable() {
         impl = NativeLookup.create(InternalFingerprint.class);
         return impl != null && impl.isSupported() && impl.isAvailable();
     }
-    
-    public static void scanFingerprint(SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
+
+    public static void scanFingerprint(String reason, SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
         InternalCallback.init(onSuccess, onFail);
-        
-        impl.scan();
+
+        impl.scan(reason);
     }
 }

@@ -12,5 +12,5 @@ import com.codename1.system.NativeInterface;
  */
 public interface InternalFingerprint extends NativeInterface {
     public boolean isAvailable();
-    public void scan();
+    public void scan(String reason);
 }
