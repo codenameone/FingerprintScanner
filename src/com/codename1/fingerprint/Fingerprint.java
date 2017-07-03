@@ -31,7 +31,7 @@ public class Fingerprint {
     }
 
     public static void scanFingerprint(String reason, SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
-        InternalCallback.init(onSuccess, onFail);
+        InternalCallback.init(reason, onSuccess, onFail);
 
         impl.scan(reason);
     }
