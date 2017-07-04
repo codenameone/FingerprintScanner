@@ -27,7 +27,7 @@ public class InternalCallback {
 
         // Android doesn't include a UI for fingerprints
         if (Display.getInstance().getPlatformName().equals("and")) {
-            if ("".equals(reason) || reason == null) {
+            if (reason == null) {
                 reason = "Authenticate for server login";
             }
             d = new Dialog(new BorderLayout());

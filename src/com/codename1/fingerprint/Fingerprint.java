@@ -30,9 +30,13 @@ public class Fingerprint {
         return impl != null && impl.isSupported() && impl.isAvailable();
     }
 
+    public static void scanFingerprint(SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
+        InternalCallback.init(null, onSuccess, onFail);
+        impl.scan(null);
+    }
+
     public static void scanFingerprint(String reason, SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
         InternalCallback.init(reason, onSuccess, onFail);
-
         impl.scan(reason);
     }
 }
