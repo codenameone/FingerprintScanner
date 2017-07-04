@@ -18,10 +18,13 @@
 }
 
 
--(void)scan{
+-(void)scan:(NSString *)reason {
+    if (reason == nil) {
+        reason = @"Authenticate for server login";
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
         LAContext *context = [[LAContext alloc] init];
-        [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:@"Authenticate for server login" reply:^(BOOL success, NSError *authenticationError){
+        [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *authenticationError){
             if (success) {
                 com_codename1_fingerprint_impl_InternalCallback_scanSuccess__(getThreadLocalData());
             }

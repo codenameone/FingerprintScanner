@@ -5,7 +5,7 @@ public class InternalFingerprintImpl implements com.codename1.fingerprint.impl.I
         return false;
     }
 
-    public void scan() {
+    public void scan(String reason) {
     }
 
     public boolean isSupported() {

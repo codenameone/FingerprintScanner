@@ -5,7 +5,7 @@ This cn1lib provides basic support for fingerprint scanning on iOS/Android with 
 You can see a test application [here](https://github.com/codenameone/FingerprintScannerTest). Usage of this library is as follows:
 
 ````java
-Fingerprint.scanFingerprint(value -> {
+Fingerprint.scanFingerprint("Use your finger print to unlock AppName.", value -> {
     Log.p("Scan successfull!");
 }, (sender, err, errorCode, errorMessage) -> {
     Log.p("Scan Failed!");
