@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.codename1.fingerprint;
 
 import com.codename1.fingerprint.impl.InternalCallback;
@@ -30,9 +25,13 @@ public class Fingerprint {
         return impl != null && impl.isSupported() && impl.isAvailable();
     }
 
+    public static void scanFingerprint(SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
+        InternalCallback.init(onSuccess, onFail);
+        impl.scan();
+    }
+
     public static void scanFingerprint(String reason, SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
         InternalCallback.init(reason, onSuccess, onFail);
-
         impl.scan(reason);
     }
 }

@@ -5,6 +5,9 @@ public class InternalFingerprintImpl {
         return false;
     }
 
+    public void scan() {
+    }
+
     public void scan(String reason) {
     }
 

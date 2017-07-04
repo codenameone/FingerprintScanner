@@ -4,6 +4,7 @@
 }
 
 -(BOOL)isAvailable;
+-(void)scan;
 -(void)scan:(NSString *)reason;
 -(BOOL)isSupported;
 @end

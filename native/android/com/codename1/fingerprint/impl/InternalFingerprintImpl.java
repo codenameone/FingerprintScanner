@@ -29,7 +29,7 @@ public class InternalFingerprintImpl {
         return response[0];
     }
 
-    public void scan(String reason) {
+    public void scan() {
         AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
             public void run() {
                 CancellationSignal cs = new CancellationSignal();
