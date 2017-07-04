@@ -21,10 +21,6 @@ public class InternalCallback {
     private static FailureCallback<Object> onFail;
     private static Dialog d;
 
-    public static void init(SuccessCallback<Object> o1, FailureCallback<Object> o2) {
-        init(null, o1, o2);
-    }
-
     public static void init(String reason, SuccessCallback<Object> o1, FailureCallback<Object> o2) {
         onSuccess = o1;
         onFail = o2;

@@ -18,12 +18,10 @@
 }
 
 
--(void)scan {
-    NSString *reason = @"Authenticate for server login";
-    [self scan:reason];
-}
-
 -(void)scan:(NSString *)reason {
+    if (reason == nil) {
+        reason = @"Authenticate for server login";
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
         LAContext *context = [[LAContext alloc] init];
         [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *authenticationError){

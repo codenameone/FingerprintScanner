@@ -6,9 +6,6 @@ public class InternalFingerprintImpl : IInternalFingerprintImpl {
         return false;
     }
 
-    public void scan() {
-    }
-
     public void scan(string reason) {
     }
 
