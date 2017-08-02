@@ -8,6 +8,7 @@ package com.codename1.fingerprint;
 import com.codename1.fingerprint.impl.InternalCallback;
 import com.codename1.fingerprint.impl.InternalFingerprint;
 import com.codename1.system.NativeLookup;
+import com.codename1.ui.Display;
 import com.codename1.util.FailureCallback;
 import com.codename1.util.SuccessCallback;
 
@@ -30,22 +31,12 @@ public class Fingerprint {
     }
 
     public static void scanFingerprint(SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
-        InternalCallback.init(null, onSuccess, onFail, true);
+        InternalCallback.init(null, onSuccess, onFail);
         impl.scan(null);
     }
 
     public static void scanFingerprint(String reason, SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail) {
-        InternalCallback.init(reason, onSuccess, onFail, true);
-        impl.scan(reason);
-    }
-
-    public static void scanFingerprint(SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail, boolean showDialogOnAndroid) {
-        InternalCallback.init(null, onSuccess, onFail, showDialogOnAndroid);
-        impl.scan(null);
-    }
-
-    public static void scanFingerprint(String reason, SuccessCallback<Object> onSuccess, FailureCallback<Object> onFail, boolean showDialogOnAndroid) {
-        InternalCallback.init(reason, onSuccess, onFail, showDialogOnAndroid);
+        InternalCallback.init(reason, onSuccess, onFail);
         impl.scan(reason);
     }
 }
