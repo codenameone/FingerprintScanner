@@ -21,12 +21,12 @@ public class InternalCallback {
     private static FailureCallback<Object> onFail;
     private static Dialog d;
 
-    public static void init(String reason, SuccessCallback<Object> o1, FailureCallback<Object> o2) {
+    public static void init(String reason, SuccessCallback<Object> o1, FailureCallback<Object> o2, boolean showDialogOnAndroid) {
         onSuccess = o1;
         onFail = o2;
 
         // Android doesn't include a UI for fingerprints
-        if (Display.getInstance().getPlatformName().equals("and")) {
+        if (Display.getInstance().getPlatformName().equals("and") && showDialogOnAndroid) {
             if (reason == null) {
                 reason = "Authenticate for server login";
             }
