@@ -18,12 +18,16 @@ public class InternalFingerprintImpl {
                 if(!AndroidNativeUtil.checkForPermission(Manifest.permission.USE_FINGERPRINT, "Authorize using fingerprint")){
                     return;
                 }
+                try {
+                    mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
+                                                                                            getSystemService(Activity.FINGERPRINT_SERVICE);
 
-                mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
-                                                                                        getSystemService(Activity.FINGERPRINT_SERVICE);
-
-                response[0] = mFingerPrintManager.isHardwareDetected() && 
-                    mFingerPrintManager.hasEnrolledFingerprints();
+                    response[0] = mFingerPrintManager.isHardwareDetected() && 
+                        mFingerPrintManager.hasEnrolledFingerprints();
+                } catch(Throwable t) {
+                    Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
+                    Log.e(t);
+                }
             }
         });
         return response[0];
