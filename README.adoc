@@ -27,12 +27,15 @@ Note that the values passed to value/fail are `null` and don't include any data 
 
 Also check out the following samples:
 
-. https://github.com/codenameone/FingerprintScannerTest[FingerprintScannerTest App]. 
+. https://github.com/codenameone/FingerprintScannerTest[FingerprintScannerTest App] - Basic usage.  Just fingerprint scanning.
+. https://github.com/codenameone/CodenameOne/blob/master/Samples/samples/FingerprintScannerSample/FingerprintScannerSample.java[FingerprintScannerSample] - From Codename One samples.  Includes sample of storing, retrieving, and deleting passwords.
 
 
 == Protecting Passwords with Fingerprints
 
-This library also allows you to store passwords in the system keychain, protected by fingerprints.  The user will be asked to authenticate with their fingerprint (or Face recognition on supported devices) in order to retrieve passwords using this library.  On Android, currently the user is also prompted to authenticate when storing passwords as well.
+This library also allows you to store passwords in the system keychain, protected by biometric authentication.  The user will be asked to authenticate with their fingerprint (or Face recognition on supported devices) in order to retrieve passwords using this library.  On Android, currently the user is also prompted to authenticate when storing passwords as well.
+
+NOTE: While these methods say that they are for storing passwords, you can use them for storing any text.  Both Android and iOS should allow you to store strings of sufficiently large size to store anything you might otherwise store in Preferences.
 
 === Storing Passwords
 
