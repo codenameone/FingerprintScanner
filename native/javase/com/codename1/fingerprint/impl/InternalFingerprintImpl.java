@@ -38,5 +38,19 @@ public class InternalFingerprintImpl implements com.codename1.fingerprint.impl.I
         installBuildHints();
         return false;
     }
+    
+    public void addPassword(int requestId, String reason, String key, String value) {
+        installBuildHints();
+        InternalCallback.requestError(requestId, "addSecureItem not supported on this platform");
+        
+    }
+    public void deletePassword(int requestId, String reason, String key) {
+        installBuildHints();
+        InternalCallback.requestError(requestId, "deleteSecureItem not supported on this platform");
+    }
+    public void getPassword(int requestId, String reason, String key) {
+        installBuildHints();
+        InternalCallback.requestError(requestId, "getSecureItem not supported on this platform");
+    }
 
 }

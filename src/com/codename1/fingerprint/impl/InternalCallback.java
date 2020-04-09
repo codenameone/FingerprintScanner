@@ -1,14 +1,18 @@
 package com.codename1.fingerprint.impl;
 
 import com.codename1.components.SpanLabel;
+import com.codename1.fingerprint.Fingerprint;
 import com.codename1.ui.Dialog;
 import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
+import com.codename1.util.AsyncResource;
 import com.codename1.util.FailureCallback;
 import com.codename1.util.SuccessCallback;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -17,6 +21,7 @@ import com.codename1.util.SuccessCallback;
  */
 public class InternalCallback {
 
+    private static Map<Integer,AsyncResource<?>> requests = new HashMap<>();
     private static SuccessCallback<Object> onSuccess;
     private static FailureCallback<Object> onFail;
     private static Dialog d;
@@ -41,6 +46,18 @@ public class InternalCallback {
         }
     }
 
+    public static void scanSuccess(String publicKey, String privateKey) {
+        if (onSuccess != null) {
+            Display.getInstance().callSerially(() -> {
+                if (d != null) {
+                    d.dispose();
+                }
+                
+                onSuccess.onSucess(null);
+            });
+        }
+    }
+    
     public static void scanSuccess() {
         if (onSuccess != null) {
             Display.getInstance().callSerially(() -> {
@@ -61,5 +78,43 @@ public class InternalCallback {
                 onFail.onError(null, null, 0, null);
             });
         }
+    }
+    
+    public static int addRequest(AsyncResource<?> request) {
+        synchronized(requests) {
+            int index = requests.size();
+            while (requests.containsKey(index)) {
+                index++;
+            }
+            requests.put(index, request);
+            return index;
+        }
+    }
+    
+    public static void requestSuccess(int requestId, String value) {
+        AsyncResource<String> req = (AsyncResource<String>)requests.get(requestId);
+        if (req == null) {
+            return;
+        }
+        requests.remove(requestId);
+        req.complete(value);
+    }
+    
+    public static void requestError(int requestId, String message) {
+        AsyncResource<?> req = requests.get(requestId);
+        if (req == null) {
+            return;
+        }
+        requests.remove(requestId);
+        req.error(new RuntimeException(message));
+    }
+    
+    public static void requestComplete(int requestId, boolean success) {
+        AsyncResource<Boolean> req = (AsyncResource<Boolean>)requests.get(requestId);
+        if (req == null) {
+            return;
+        }
+        requests.remove(requestId);
+        req.complete(success);
     }
 }

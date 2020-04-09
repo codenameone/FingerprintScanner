@@ -13,4 +13,7 @@ import com.codename1.system.NativeInterface;
 public interface InternalFingerprint extends NativeInterface {
     public boolean isAvailable();
     public void scan(String reason);
+    public void addPassword(int requestId, String reason, String account, String password);
+    public void deletePassword(int requestId, String reason, String account);
+    public void getPassword(int requestId, String reason, String account);
 }

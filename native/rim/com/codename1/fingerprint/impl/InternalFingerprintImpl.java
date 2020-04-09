@@ -11,5 +11,16 @@ public class InternalFingerprintImpl {
     public boolean isSupported() {
         return false;
     }
+    
+    public void addPassword(int requestId, String reason, String key, String value) {
+        
+        
+    }
+    public void deletePassword(int requestId, String reason, String key) {
+        
+    }
+    public void getPassword(int requestId, String reason, String key) {
+        
+    }
 
 }

@@ -1,0 +1,155 @@
+= Fingerprint Scanner
+
+Fingerprint scanning and biometric support for https://www.codenameone.com[Codename One].
+
+This cn1lib provides basic support for fingerprint scanning on iOS/Android with one API. Due to the difference between the two implementations we chose a simplified approach that just verifies the fingerprint and doesn't delve into the nuanced complexities for this API.
+
+== Supported Platforms
+
+Currently this library supports only Android (API 23+), and iOS.
+
+== Installation
+
+For instructions on installing cn1libs, see https://www.codenameone.com/blog/automatically-install-update-distribute-cn1libs-extensions.html[this tutorial].
+
+== Basic Usage
+
+[source,java]
+----
+Fingerprint.scanFingerprint("Use your finger print to unlock AppName.", value -> {
+    Log.p("Scan successfull!");
+}, (sender, err, errorCode, errorMessage) -> {
+    Log.p("Scan Failed!");
+});
+----
+
+Note that the values passed to value/fail are `null` and don't include any data at this time...
+
+Also check out the following samples:
+
+. https://github.com/codenameone/FingerprintScannerTest[FingerprintScannerTest App]. 
+
+
+== Protecting Passwords with Fingerprints
+
+This library also allows you to store passwords in the system keychain, protected by fingerprints.  The user will be asked to authenticate with their fingerprint (or Face recognition on supported devices) in order to retrieve passwords using this library.  On Android, currently the user is also prompted to authenticate when storing passwords as well.
+
+=== Storing Passwords
+
+[source,java]
+----
+String account = "steve@example.com";
+String password = "....";
+
+Fingerprint.addPassword(
+    "Adding secure item to keystore", // Message to display in authentication dialog
+    account, 
+    password
+).onResult((success, err)->{
+    if (err != null) {
+        Log.e(err);
+        ToastBar.showErrorMessage("Failed to add password to keystore: "+ err.getMessage());
+    } else {
+        // success always true if there was no error.
+        ToastBar.showInfoMessage("Successfully added password to keystore");
+    }
+});
+----
+
+=== Retrieving Passwords
+
+[source,java]
+----
+String account = "steve@example.com";
+
+Fingerprint.getPassword(
+    "Getting secure item",  // Message to display in auth dialog
+    account
+).onResult((password, err)->{
+    if (err != null) {
+        // Error condition occurs both if the keychain doesn't have 
+        // a password for the given account, or if a failure occurs
+        // in retrieving it.
+        // NOTE:  If the user adds a finger or face to biometric scanning
+        // or disables password protection on the device, all passwords
+        // will be purged automatically.
+        Log.e(err);
+        ToastBar.showErrorMessage("Failed to get password: " + err.getMessage());
+    } else {
+        System.out.println("The password was "+password);
+    }
+});
+----
+
+=== Deleting Passwords
+
+[source,java]
+----
+String account = "steve@example.com";
+
+Fingerprint.deletePassword(
+    "Getting secure item",   // Message to display in auth dialog
+    keyName.getText()
+).onResult((res, err)->{
+    if (err != null) {
+        Log.e(err);
+        ToastBar.showErrorMessage("Failed to delete password: "+err.getMessage());
+    } else {
+        System.out.println("Deleted the password for account "+account);
+    }
+});
+----
+
+=== Password Invalidation
+
+Passwords stored in the keychain will be automatically purged if any of the following occurs:
+
+. The user adds additional fingers to fingerprint authentication.
+. The user adds additional faces to face ID biometric authentication.
+. The user turns off phone login security.  E.g. if they turn off password or fingerprint requirements for login to the phone.
+
+=== Android Implementation
+
+Currently, on Android we are using the https://developer.android.com/reference/android/hardware/fingerprint/FingerprintManager[FingerprintManager] class for authentication.  We are working on migrating to https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt[BiometricPrompt] on devices running API 28 and higher.  When that is added, devices on API 23-27 will still use FingerPrintManager.
+
+Passwords are not, themselves, stored inside the system Keystore.  Rather, a symmetric Key is generated and stored inside the keychain, which is used to encrypt and decrypt the passwords, which are stored private `SharedPreferences`.
+
+Currently the key specifications are:
+
+[source,java]
+----
+new KeyGenParameterSpec.Builder(
+    KEY_ID,
+    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
+)
+.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+.setUserAuthenticationRequired(true)
+.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+----
+
+Refer to the https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder[KeyGenParameterSpec.Builder docs] for a more detailed description of what these settings mean.
+
+The `.setUserAuthenticationRequired(true)` call is what causes the key to become invalid when the user adds fingers or faces to authentication.
+
+=== iOS Implementation
+
+On iOS, the library acts as a thin layer on top of the https://developer.apple.com/documentation/security/1401659-secitemadd?language=objc[SecItemAdd], https://developer.apple.com/documentation/security/1398306-secitemcopymatching?language=objc[SecItemCopyMatching], and https://developer.apple.com/documentation/security/1395547-secitemdelete?language=objc[SecItemDelete] functions which directly add passwords to the keychain.
+
+The security settings on the passwords are:
+
+[source,objective-c]
+----
+SecAccessControlRef sacRef = SecAccessControlCreateWithFlags(kCFAllocatorDefault,
+    kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+    kSecAccessControlTouchIDCurrentSet, 
+    nil
+);
+----
+
+For more details on what these mean, see the following documentation pages:
+
+. https://developer.apple.com/documentation/security/secaccesscontrolref?language=objc[SecAccessControlRef]
+. https://developer.apple.com/documentation/security/ksecattraccessiblewhenpasscodesetthisdeviceonly?language=objc[kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly]
+. https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/ksecaccesscontroltouchidcurrentset?language=objc[kSecAccessControlTouchIDCurrentSet]
+
+
