@@ -283,6 +283,7 @@ public class InternalFingerprintImpl {
     public void deletePassword(int requestId, String reason, String account) {
         SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
         sharedPref.edit().remove("fing"+account).remove("fing_iv"+account).apply();
+        InternalCallback.requestComplete(requestId, true);
     }
 
     public void getPassword(int requestId, String reason, String key) {
