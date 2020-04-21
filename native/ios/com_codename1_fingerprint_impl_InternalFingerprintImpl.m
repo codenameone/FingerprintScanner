@@ -1,6 +1,7 @@
 #import "com_codename1_fingerprint_impl_InternalFingerprintImpl.h"
 #include "com_codename1_fingerprint_impl_InternalCallback.h"
 #include "com_codename1_ui_Display.h"
+#include "com_codename1_ui_CN.h"
 
 #import <LocalAuthentication/LocalAuthentication.h>
 
@@ -15,7 +16,66 @@
     NSError *error = nil;
     LAContext *laContext = [[LAContext alloc] init];
     
-    return [laContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
+    BOOL _out = [laContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
+
+    if (_out) {
+        NSString* types = @"";
+        if ([self isTouchIDAvailable]) {
+            types = [types stringByAppendingString:@" touch"];
+        }
+        if ([self isFaceIDAvailable]) {
+            types = [types stringByAppendingString:@" face"];
+        }
+        struct ThreadLocalData* tdata = getThreadLocalData();
+        JAVA_OBJECT pkey = fromNSString(tdata, @"Fingerprint.types");
+        JAVA_OBJECT pval = fromNSString(tdata, types);
+        com_codename1_ui_CN_setProperty___java_lang_String_java_lang_String(tdata, pkey, pval);
+        
+    }
+    return _out;
+}
+
+- (BOOL) isTouchIDAvailable {
+    if (![LAContext class]) return NO;
+
+    LAContext *myContext = [[LAContext alloc] init];
+    NSError *authError = nil;
+    if (![myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
+        NSLog(@"%@", [authError localizedDescription]);
+        return NO;
+        // if (authError.code == LAErrorTouchIDNotAvailable) {}
+    }
+
+    if (@available(iOS 11.0, *)) {
+        if (myContext.biometryType == LABiometryTypeTouchID){
+            return YES;
+        } else {
+            return NO;
+        }
+    } else {
+        return YES;
+    }
+}
+
+- (BOOL) isFaceIDAvailable {
+    if (![LAContext class]) return NO;
+
+    LAContext *myContext = [[LAContext alloc] init];
+    NSError *authError = nil;
+    if (![myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
+        NSLog(@"%@", [authError localizedDescription]);
+        return NO;
+    }
+
+    if (@available(iOS 11.0, *)) {
+        if (myContext.biometryType == LABiometryTypeFaceID){
+            return YES;
+        } else {
+            return NO;
+        }
+    } else {
+        return NO;
+    }
 }
 
 

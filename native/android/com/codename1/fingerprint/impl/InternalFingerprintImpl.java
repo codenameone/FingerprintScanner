@@ -19,6 +19,7 @@ import android.security.keystore.KeyProperties;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import com.codename1.io.Log;
+import com.codename1.ui.CN;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -68,6 +69,15 @@ public class InternalFingerprintImpl {
                 }
             }
         });
+        if (response[0]) {
+            // Need to store the allowed biometric types in system property so that
+            // Fingerprint.isTouchIDAvailable() and Fingerprint.isFaceIDAvailable()
+            // will work correct.
+            // If face id is supported, we append "face"
+            // If touch id is supported, we append "touch".
+            // E.g. a property value that supports both face and touch would be "touch face"
+            CN.setProperty("Fingerprint.types", "touch");
+        }
         return response[0];
     }
 

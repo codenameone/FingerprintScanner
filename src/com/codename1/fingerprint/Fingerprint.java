@@ -9,6 +9,7 @@ import com.codename1.components.SpanLabel;
 import com.codename1.fingerprint.impl.InternalCallback;
 import com.codename1.fingerprint.impl.InternalFingerprint;
 import com.codename1.system.NativeLookup;
+import com.codename1.ui.CN;
 import com.codename1.ui.Dialog;
 import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
@@ -24,7 +25,7 @@ import com.codename1.util.SuccessCallback;
  * in the system keychain protected cryptographically by biometrics.
  */
 public class Fingerprint {
-    
+    private static final String DISPLAY_KEY = "Fingerprint.types";
 
     private static InternalFingerprint impl;
 
@@ -36,6 +37,11 @@ public class Fingerprint {
         InternalCallback.requestError(0, null);
         InternalCallback.requestComplete(0, true);
         InternalCallback.requestSuccess(0, null);
+    }
+    
+    private static class BooleanPasswordRequest extends AsyncResource<Boolean> {
+        private boolean shouldPrompt;
+        private boolean didPrompt;
     }
 
     /**
@@ -49,6 +55,24 @@ public class Fingerprint {
             
         }
         return impl != null && impl.isSupported() && impl.isAvailable();
+    }
+    
+    /**
+     * Checks if Face ID authentication is available on this device.
+     * @return True if face id auth is available.
+     */
+    public static boolean isFaceIDAvailable() {
+        isAvailable(); // Platforms set the DISPLAY_KEY display property in isAvailable()
+        return CN.getProperty(DISPLAY_KEY, "").indexOf("face") != -1;
+    }
+    
+    /**
+     * Checks if touch ID authentication is available on this device.
+     * @return True if touch ID is available
+     */
+    public static boolean isTouchIDAvailable() {
+        isAvailable(); // Platforms set the DISPLAY_KEY display property in isAvailable()
+        return CN.getProperty(DISPLAY_KEY, "").indexOf("touch") != -1;
     }
 
     /**
@@ -179,7 +203,16 @@ public class Fingerprint {
     }
     
     /**
-     * Adds a password to the keychain.  The user will be prompted to authenticate using biometrics.
+     * Adds a password to the keychain.  Some platforms may prompt the user to authenticate
+     * to perform this function.  iOS (at least in iOS 13) will not authenticate the user for
+     * this action.  It will only authenticate when the user wants to retrieve the password.
+     * This is likely because adding authentication at this point wouldn't add any security
+     * since the user could just add their fingerprint in "Settings", return to the app
+     * and authenticate.  This same loop-hole doesn't exist for getting passwords because
+     * passwords are automatically invalidated when adding additional fingerprints to the device.
+     * 
+     * <p>Enabling authentication for adding passwords on iOS can be achieved by setting 
+     * the "ios.Fingerprint.addPassword.prompt" display property to "true"</p>
      * 
      * @param reason A message to display in the fingerprint authentication dialog.
      * @param account The account that the password is for.
@@ -189,7 +222,23 @@ public class Fingerprint {
      * @return AsyncResource that will return success/fail.
      */
     public static AsyncResource<Boolean> addPassword(String reason, String account, String password, boolean showDialogOnAndroid) {
-        AsyncResource<Boolean> out = new AsyncResource<>();
+        BooleanPasswordRequest out = new BooleanPasswordRequest();
+        if (isAvailable() && "ios".equals(CN.getPlatformName()) && !CN.isSimulator()) {
+            if ("true".equals(CN.getProperty("ios.Fingerprint.addPassword.prompt", "false"))) {
+                // This little hook is just for iOS.
+                // iOS SecAddItem method doesn't prompt for authentication because
+                // it wouldn't add any security (user could just add their their fingerprint
+                // in settings and return to app to authenticate).  Client, however, 
+                // still wants this feature.
+                // This behaviour is disabled by default.  It can be enabled by setting the
+                // ios.Fingerprint.addPassword.prompt display property to "true"
+                out.shouldPrompt = true;
+            }
+        }
+        return addPassword(out, reason, account, password, showDialogOnAndroid);
+    }
+    
+    private static AsyncResource<Boolean> addPassword(BooleanPasswordRequest out, String reason, String account, String password, boolean showDialogOnAndroid) { 
         if (!isAvailable()) {
             out.error(new IllegalStateException("Fingerprint scanning not available"));
             return out;
@@ -197,6 +246,26 @@ public class Fingerprint {
         int requestId = InternalCallback.addRequest(out);
         if (showDialogOnAndroid) {
             showDialogOnAndroid(reason, out);
+        }
+        if (out.shouldPrompt && !out.didPrompt) {
+            // This little hook is just for iOS.
+            // iOS SecAddItem method doesn't prompt for authentication because
+            // it wouldn't add any security (user could just add their their fingerprint
+            // in settings and return to app to authenticate).  Client, however, 
+            // still wants this feature.
+            // This behaviour is disabled by default.  It can be enabled by setting the
+            // ios.Fingerprint.addPassword.prompt display property to "true"
+            scanFingerprint(reason, res->{
+                out.didPrompt = true;
+                addPassword(out, reason, account, password, showDialogOnAndroid);
+            }, new FailureCallback<Object>() {
+                @Override
+                public void onError(Object arg0, Throwable arg1, int arg2, String arg3) {
+                    out.didPrompt = true;
+                    out.error(arg1);
+                }
+            });
+            return out;
         }
         impl.addPassword(requestId, reason, account, password);
         return out;
