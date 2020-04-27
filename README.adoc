@@ -2,6 +2,8 @@
 
 Fingerprint scanning and biometric support for https://www.codenameone.com[Codename One].
 
+image::images/fingerprint-scanner-feature.jpg[]
+
 This cn1lib provides basic support for fingerprint scanning on iOS/Android with one API. Due to the difference between the two implementations we chose a simplified approach that just verifies the fingerprint and doesn't delve into the nuanced complexities for this API.
 
 == Supported Platforms
