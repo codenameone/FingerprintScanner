@@ -5,3 +5,4 @@ build/
 nbbuild/
 dist/
 lib/CodenameOne_SRC.zip
+/AndroidProject/nbproject/private/

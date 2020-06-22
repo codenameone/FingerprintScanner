@@ -10,6 +10,7 @@ import com.codename1.fingerprint.impl.InternalCallback;
 import com.codename1.fingerprint.impl.InternalFingerprint;
 import com.codename1.system.NativeLookup;
 import com.codename1.ui.CN;
+import com.codename1.ui.Container;
 import com.codename1.ui.Dialog;
 import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
@@ -59,11 +60,29 @@ public class Fingerprint {
     
     /**
      * Checks if Face ID authentication is available on this device.
+     * 
+     * <p>Note: On Android 9 and 10, this will always return false even if the device supports facial recognition.  This is because the
+     * Android API to query this information wasn't added until Android 11, even though facial recognition is
+     * supported as early as Android 9.  Use the {@link #mightFaceIDBeAvailable() } method to check if facial ID
+     * might be supported. </p>
+     * 
      * @return True if face id auth is available.
      */
     public static boolean isFaceIDAvailable() {
         isAvailable(); // Platforms set the DISPLAY_KEY display property in isAvailable()
         return CN.getProperty(DISPLAY_KEY, "").indexOf("face") != -1;
+    }
+    
+    /**
+     * This method was added because Android 9 and 10 doesn't provide a way to check if the device supports 
+     * facial recognition, therefore, {@link #isFaceIDAvailable() } will always return {@literal false} on 
+     * those devices.  This method will return true if face ID might be available.  It will return false
+     * if we know that it is not available.
+     * 
+     * @return True if face ID might be available
+     */
+    public static boolean mightFaceIDBeAvailable() {
+        return isFaceIDAvailable() || (isTouchIDAvailable() && CN.getProperty(DISPLAY_KEY, "").indexOf("biometric") != -1);
     }
     
     /**
@@ -294,11 +313,19 @@ public class Fingerprint {
                 reason = "Authenticate for server login";
             }
             Dialog d = new Dialog(new BorderLayout());
-            Label icon = new Label("", "DialogBody");
-            icon.getUnselectedStyle().setFgColor(0xff5722); //Sets icon color to orange
+            Label fingerprintIcon = new Label("", "DialogBody");
+            Container iconWrapper = new Container(BoxLayout.x());
+            iconWrapper.add(fingerprintIcon);
+            if (mightFaceIDBeAvailable()) {
+                Label faceIcon = new Label("", "DialogBody");
+                faceIcon.getUnselectedStyle().setFgColor(0xff5722);
+                FontImage.setMaterialIcon(faceIcon, FontImage.MATERIAL_FACE, 7);
+                iconWrapper.add(faceIcon);
+            }
+            fingerprintIcon.getUnselectedStyle().setFgColor(0xff5722); //Sets icon color to orange
             SpanLabel lblReason = new SpanLabel(reason, "DialogBody");
-            FontImage.setMaterialIcon(icon, FontImage.MATERIAL_FINGERPRINT, 7);
-            d.add(BorderLayout.CENTER, BoxLayout.encloseY(icon, lblReason));
+            FontImage.setMaterialIcon(fingerprintIcon, FontImage.MATERIAL_FINGERPRINT, 7);
+            d.add(BorderLayout.CENTER, BoxLayout.encloseY(iconWrapper, lblReason));
             d.showPacked(BorderLayout.CENTER, false);
             request.onResult((res, err)->{
                 d.dispose();
