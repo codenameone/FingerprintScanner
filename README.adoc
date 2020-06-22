@@ -14,7 +14,7 @@ Currently this library supports only Android (API 23+), and iOS.
 
 For instructions on installing cn1libs, see https://www.codenameone.com/blog/automatically-install-update-distribute-cn1libs-extensions.html[this tutorial].
 
-[IMPORTAN]
+[IMPORTANT]
 ====
 Android builds *must* use build tools 29 or higher.  E.g.  Add the following build hints:
 
@@ -22,6 +22,7 @@ Android builds *must* use build tools 29 or higher.  E.g.  Add the following bui
 android.buildToolsVersion=29.0.3
 android.targetSdkVersion=29.0.3
 ----
+====
 
 == Basic Usage
 
