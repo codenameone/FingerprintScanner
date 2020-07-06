@@ -118,6 +118,10 @@ public class InternalFingerprintImpl {
                 // so that the mightFaceIDBeAvailable() will return true
                 // but isFaceIDAvailable() will still be false.
                 param += " biometric";
+                
+                // If we are using BiometricPrompt, we don't need to show the CN1 fingerprint
+                // dialog because the system provides its own UI.
+                CN.setProperty("FingerprintScanner.showDialogOnAndroid", "false");
             }
             CN.setProperty("Fingerprint.types", param);
         }

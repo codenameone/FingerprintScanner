@@ -178,7 +178,12 @@ public class Fingerprint {
      * the keychain, the result will be the password as a string.  If the password doesn't exist, then it will return an error.
      */
     public static AsyncResource<String> getPassword(String reason, String account) {
-        return getPassword(reason, account, true);
+        return getPassword(reason, account, showDialogOnAndroid());
+    }
+    
+    private static boolean showDialogOnAndroid() {
+        isAvailable();
+        return "true".equals(CN.getProperty("FingerprintScanner.showDialogOnAndroid", "false"));
     }
     
     /**
@@ -218,7 +223,7 @@ public class Fingerprint {
      * @return AsyncResource that will return success/fail.
      */
     public static AsyncResource<Boolean> addPassword(String reason, String account, String password) {
-        return addPassword(reason, account, password, true);
+        return addPassword(reason, account, password, showDialogOnAndroid());
     }
     
     /**
@@ -316,12 +321,6 @@ public class Fingerprint {
             Label fingerprintIcon = new Label("", "DialogBody");
             Container iconWrapper = new Container(BoxLayout.x());
             iconWrapper.add(fingerprintIcon);
-            if (mightFaceIDBeAvailable()) {
-                Label faceIcon = new Label("", "DialogBody");
-                faceIcon.getUnselectedStyle().setFgColor(0xff5722);
-                FontImage.setMaterialIcon(faceIcon, FontImage.MATERIAL_FACE, 7);
-                iconWrapper.add(faceIcon);
-            }
             fingerprintIcon.getUnselectedStyle().setFgColor(0xff5722); //Sets icon color to orange
             SpanLabel lblReason = new SpanLabel(reason, "DialogBody");
             FontImage.setMaterialIcon(fingerprintIcon, FontImage.MATERIAL_FINGERPRINT, 7);
