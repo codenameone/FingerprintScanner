@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2012, Codename One and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Codename One designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
+ *  
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ * 
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * 
+ * Please contact Codename One through http://www.codenameone.com/ if you 
+ * need additional information or have any questions.
+ */
 package com.codename1.fingerprint.impl;
 
 import android.hardware.fingerprint.FingerprintManager;
@@ -317,6 +339,7 @@ public class InternalFingerprintImpl {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
+                    return false;
                 }
             }
 
@@ -451,6 +474,7 @@ public class InternalFingerprintImpl {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
+                    return false;
                 }
             }
 
@@ -576,11 +600,20 @@ public class InternalFingerprintImpl {
             SecretKey secretKey = getSecretKey();
 
             if (secretKey == null) {
+                /*
                 if (createKey()) {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
+                    return false;
                 }
+                */
+                if (keyRevoked) {
+                    InternalCallback.requestKeyRevokedError(requestId, String.valueOf("Key has been invalidated"));
+                } else {
+                    InternalCallback.requestError(requestId, String.valueOf("No key found"));
+                }
+                return false;
             }
 
 
@@ -641,6 +674,9 @@ public class InternalFingerprintImpl {
                     };
                     if(!initCipher(Cipher.DECRYPT_MODE, key)) {
                         // Could not initialize cipher, key must have been invalidated
+                        InternalCallback.requestKeyRevokedError(requestId, "Failed to initialize cipher.  Secret key must have been revoked");
+                        return;
+                        /*
                         if (!createKey()) {
                             InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
                             return;
@@ -649,6 +685,7 @@ public class InternalFingerprintImpl {
                             InternalCallback.requestError(requestId, "Failed to initialize the cipher even after generating new key.  Something must be wrong");
                             return;
                         }
+                        */
 
 
                     }
@@ -695,11 +732,20 @@ public class InternalFingerprintImpl {
             SecretKey secretKey = getSecretKey();
 
             if (secretKey == null) {
+                /*
                 if (createKey()) {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
+                    return false;
                 }
+                */
+                if (keyRevoked) {
+                    InternalCallback.requestKeyRevokedError(requestId, String.valueOf("Key has been invalidated"));
+                } else {
+                    InternalCallback.requestError(requestId, String.valueOf("No key found"));
+                }
+                return false;
             }
 
 
@@ -760,6 +806,9 @@ public class InternalFingerprintImpl {
                     };
                     if(!initCipher(Cipher.DECRYPT_MODE, key)) {
                         // Could not initialize cipher, key must have been invalidated
+                        InternalCallback.requestKeyRevokedError(requestId, "Failed to initialize cipher.  Secret key must have been revoked");
+                        return;
+                        /*
                         if (!createKey()) {
                             InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
                             return;
@@ -768,6 +817,7 @@ public class InternalFingerprintImpl {
                             InternalCallback.requestError(requestId, "Failed to initialize the cipher even after generating new key.  Something must be wrong");
                             return;
                         }
+                        */
 
 
                     }
@@ -842,8 +892,9 @@ public class InternalFingerprintImpl {
         }
         return isKeyCreated;
     }
-    
+     private boolean keyRevoked = false;
      private SecretKey getSecretKey() {
+         keyRevoked = false;
         String errorMessage = "";
         String getSecretKeyExceptionErrorPrefix = "Failed to get SecretKey from KeyStore: ";
         SecretKey key = null;
@@ -855,12 +906,14 @@ public class InternalFingerprintImpl {
         } catch (CertificateException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "CertificateException";
         } catch (UnrecoverableKeyException e) {
+            keyRevoked = true;
             errorMessage = getSecretKeyExceptionErrorPrefix + "UnrecoverableKeyException";
         } catch (IOException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "IOException";
         } catch (NoSuchAlgorithmException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "NoSuchAlgorithmException";
         } catch (UnrecoverableEntryException e) {
+            keyRevoked = true;
             errorMessage = getSecretKeyExceptionErrorPrefix + "UnrecoverableEntryException";
         }
         if (key == null) {
@@ -893,6 +946,7 @@ public class InternalFingerprintImpl {
 
         @RequiresApi(api = Build.VERSION_CODES.M)
         private static boolean initCipher(InternalFingerprintImpl impl, int mode, String account) {
+            
             boolean initCipher = false;
             String errorMessage = "";
             String initCipherExceptionErrorPrefix = "Failed to init Cipher: ";

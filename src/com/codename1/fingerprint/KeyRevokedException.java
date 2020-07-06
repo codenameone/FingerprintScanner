@@ -20,17 +20,16 @@
  * Please contact Codename One through http://www.codenameone.com/ if you 
  * need additional information or have any questions.
  */
-package com.codename1.fingerprint.impl;
-
-import com.codename1.system.NativeInterface;
+package com.codename1.fingerprint;
 
 /**
- * @deprecated internal implementation detail please use {@code Fingerprint}
+ * Exception thrown by {@link Fingerprint#addPassword(java.lang.String, java.lang.String, java.lang.String) } and
+ * {@link Fingerprint#getPassword(java.lang.String, java.lang.String) } if the key has been revoked.  A key is revoked
+ * if the user has added fingerprints, or other forms of biometric authentication since the key was generated.
+ * @author Steve Hannah
  */
-public interface InternalFingerprint extends NativeInterface {
-    public boolean isAvailable();
-    public void scan(String reason);
-    public void addPassword(int requestId, String reason, String account, String password);
-    public void deletePassword(int requestId, String reason, String account);
-    public void getPassword(int requestId, String reason, String account);
+public class KeyRevokedException extends RuntimeException {
+    public KeyRevokedException(String msg) {
+        super(msg);
+    }
 }
