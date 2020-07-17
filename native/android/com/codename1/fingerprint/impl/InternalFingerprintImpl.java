@@ -134,7 +134,7 @@ public class InternalFingerprintImpl {
 
                         if (mFingerPrintManager.isHardwareDetected() && 
                                 mFingerPrintManager.hasEnrolledFingerprints()) {
-                            
+                            paramBuilder.append("touch ");
                         }
                     } catch(Throwable t) {
                         Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
