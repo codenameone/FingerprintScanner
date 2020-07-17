@@ -34,6 +34,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.hardware.fingerprint.FingerprintManager.CryptoObject;
@@ -77,14 +78,15 @@ public class InternalFingerprintImpl {
     
        
     public boolean isAvailable() {
-        final boolean[] response = new boolean[1];
+        //final boolean[] response = new boolean[1];
         if (android.os.Build.VERSION.SDK_INT < 23) {
             return false;
         }
-        
+        final StringBuilder paramBuilder = new StringBuilder();
         if (android.os.Build.VERSION.SDK_INT >= 29) {
+            CN.setProperty("FingerprintScanner.showDialogOnAndroid", "false");
             AndroidImplementation.runOnUiThreadAndBlock(new Runnable() {
-                @RequiresApi(api = Build.VERSION_CODES.M)
+                @RequiresApi(api = Build.VERSION_CODES.Q)
                 public void run() {
                     if(!AndroidNativeUtil.checkForPermission(Manifest.permission.USE_BIOMETRIC, "Authorize using biometrics")){
                         return;
@@ -94,8 +96,24 @@ public class InternalFingerprintImpl {
                             mBiometricManager = (BiometricManager)AndroidNativeUtil.getActivity().
                                                                                                     getSystemService(Activity.BIOMETRIC_SERVICE);
                         }
+                        PackageManager packageManager = AndroidNativeUtil.getActivity().getPackageManager();
+                        boolean canAuthenticate = mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
+                        if (canAuthenticate) {
+                            if (packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+                                FingerprintManager fingerprintManager = (FingerprintManager)AndroidNativeUtil.getActivity().getSystemService(Activity.FINGERPRINT_SERVICE);
+                                if (fingerprintManager.hasEnrolledFingerprints()) {
+                                    paramBuilder.append("touch ");
+                                }
+                            }
+                            if (packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)) {
+                                paramBuilder.append("face ");
+                            }
+                            if (packageManager.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+                                paramBuilder.append("iris ");
+                            }
+                        }
 
-                        response[0] = mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
+                        
                     } catch(Throwable t) {
                         Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
                         Log.e(t);
@@ -103,7 +121,7 @@ public class InternalFingerprintImpl {
                 }
             });
         } else {
-
+            CN.setProperty("FingerprintScanner.showDialogOnAndroid", "true");
             AndroidImplementation.runOnUiThreadAndBlock(new Runnable() {
                 @RequiresApi(api = Build.VERSION_CODES.M)
                 public void run() {
@@ -114,8 +132,10 @@ public class InternalFingerprintImpl {
                         mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
                                                                                                 getSystemService(Activity.FINGERPRINT_SERVICE);
 
-                        response[0] = mFingerPrintManager.isHardwareDetected() && 
-                            mFingerPrintManager.hasEnrolledFingerprints();
+                        if (mFingerPrintManager.isHardwareDetected() && 
+                                mFingerPrintManager.hasEnrolledFingerprints()) {
+                            
+                        }
                     } catch(Throwable t) {
                         Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
                         Log.e(t);
@@ -123,31 +143,10 @@ public class InternalFingerprintImpl {
                 }
             });
         }
-        if (response[0]) {
-            // Need to store the allowed biometric types in system property so that
-            // Fingerprint.isTouchIDAvailable() and Fingerprint.isFaceIDAvailable()
-            // will work correct.
-            // If face id is supported, we append "face"
-            // If touch id is supported, we append "touch".
-            // E.g. a property value that supports both face and touch would be "touch face"
-            String param = "touch";
-            if (android.os.Build.VERSION.SDK_INT >= 29) {
-                // On API 29, we Android doesn't give us a way to determine
-                // if facial recognition is supported.
-                // https://stackoverflow.com/questions/62430155/biometricmanager-on-android-9/62433371#62433371
-                //
-                // So we add "biometric" for these versions rather than "face"
-                // so that the mightFaceIDBeAvailable() will return true
-                // but isFaceIDAvailable() will still be false.
-                param += " biometric";
-                
-                // If we are using BiometricPrompt, we don't need to show the CN1 fingerprint
-                // dialog because the system provides its own UI.
-                CN.setProperty("FingerprintScanner.showDialogOnAndroid", "false");
-            }
-            CN.setProperty("Fingerprint.types", param);
-        }
-        return response[0];
+        String param = paramBuilder.toString().trim();
+        CN.setProperty("Fingerprint.types", param);
+        
+        return !param.isEmpty();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
