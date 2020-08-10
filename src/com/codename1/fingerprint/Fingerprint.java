@@ -86,8 +86,7 @@ public class Fingerprint {
      * @return True if face id auth is available.
      */
     public static boolean isFaceIDAvailable() {
-        isAvailable(); // Platforms set the DISPLAY_KEY display property in isAvailable()
-        return CN.getProperty(DISPLAY_KEY, "").indexOf("face") != -1;
+        return isAvailable() && CN.getProperty(DISPLAY_KEY, "").indexOf("face") != -1;
     }
     
     /**
@@ -107,8 +106,7 @@ public class Fingerprint {
      * @return True if touch ID is available
      */
     public static boolean isTouchIDAvailable() {
-        isAvailable(); // Platforms set the DISPLAY_KEY display property in isAvailable()
-        return CN.getProperty(DISPLAY_KEY, "").indexOf("touch") != -1;
+        return isAvailable() && CN.getProperty(DISPLAY_KEY, "").indexOf("touch") != -1;
     }
 
     /**
@@ -199,6 +197,9 @@ public class Fingerprint {
     }
     
     private static boolean showDialogOnAndroid() {
+        if (CN.getProperty("FingerprintScanner.showDialogOnAndroid.override", null) != null) {
+            return "true".equals(CN.getProperty("FingerprintScanner.showDialogOnAndroid.override", null));
+        }
         isAvailable();
         return "true".equals(CN.getProperty("FingerprintScanner.showDialogOnAndroid", "false"));
     }
