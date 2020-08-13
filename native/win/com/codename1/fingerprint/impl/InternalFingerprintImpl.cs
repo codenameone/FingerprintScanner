@@ -22,5 +22,7 @@ public class InternalFingerprintImpl : IInternalFingerprintImpl {
         return false;
     }
 
+    public void cancelRequest(int requestId){}
+
 }
 }

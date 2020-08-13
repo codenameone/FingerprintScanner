@@ -26,6 +26,7 @@ import com.codename1.components.SpanLabel;
 import com.codename1.fingerprint.impl.InternalCallback;
 import com.codename1.fingerprint.impl.InternalFingerprint;
 import com.codename1.system.NativeLookup;
+import com.codename1.ui.Button;
 import com.codename1.ui.CN;
 import com.codename1.ui.Container;
 import com.codename1.ui.Dialog;
@@ -57,9 +58,45 @@ public class Fingerprint {
         InternalCallback.requestSuccess(0, null);
     }
     
-    private static class BooleanPasswordRequest extends AsyncResource<Boolean> {
+    private static interface PasswordRequest {
+        int getRequestId();
+    }
+    
+    private static class BooleanPasswordRequest extends AsyncResource<Boolean> implements PasswordRequest {
+        private int requestId;
         private boolean shouldPrompt;
         private boolean didPrompt;
+
+        @Override
+        public int getRequestId() {
+            return requestId;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            impl.cancelRequest(requestId);
+            return super.cancel(mayInterruptIfRunning);
+        }
+        
+        
+        
+    }
+    
+    private static class StringPasswordRequest extends AsyncResource<String> implements PasswordRequest {
+        private int requestId;
+
+        @Override
+        public int getRequestId() {
+            return requestId;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            impl.cancelRequest(requestId);
+            return super.cancel(mayInterruptIfRunning);
+        }
+        
+        
     }
 
     /**
@@ -219,16 +256,16 @@ public class Fingerprint {
      * the keychain, the result will be the password as a string.  If the password doesn't exist, then it will return an error.
      */
     public static AsyncResource<String> getPassword(String reason, String account, boolean showDialogOnAndroid) {
-        AsyncResource<String> out = new AsyncResource<>();
+        StringPasswordRequest out = new StringPasswordRequest();
         if (!isAvailable()) {
             out.error(new IllegalStateException("Fingerprint scanning not available"));
             return out;
         }
-        int requestId = InternalCallback.addRequest(out);
+        out.requestId = InternalCallback.addRequest(out);
         if (showDialogOnAndroid) {
             showDialogOnAndroid(reason, out);
         }
-        impl.getPassword(requestId, reason, account);
+        impl.getPassword(out.requestId, reason, account);
         return out;
     }
     
@@ -285,7 +322,7 @@ public class Fingerprint {
             out.error(new IllegalStateException("Fingerprint scanning not available"));
             return out;
         }
-        int requestId = InternalCallback.addRequest(out);
+        out.requestId = InternalCallback.addRequest(out);
         if (showDialogOnAndroid) {
             showDialogOnAndroid(reason, out);
         }
@@ -309,7 +346,7 @@ public class Fingerprint {
             });
             return out;
         }
-        impl.addPassword(requestId, reason, account, password);
+        impl.addPassword(out.requestId, reason, account, password);
         return out;
     }
     
@@ -320,13 +357,13 @@ public class Fingerprint {
      * @return 
      */
     public static AsyncResource<Boolean> deletePassword(String reason, String account) {
-        AsyncResource<Boolean> out = new AsyncResource<>();
+        BooleanPasswordRequest out = new BooleanPasswordRequest();
         if (!isAvailable()) {
             out.error(new IllegalStateException("Fingerprint scanning not available"));
             return out;
         }
-        int requestId = InternalCallback.addRequest(out);
-        impl.deletePassword(requestId, reason, account);
+        out.requestId = InternalCallback.addRequest(out);
+        impl.deletePassword(out.requestId, reason, account);
         return out;
     }
     
@@ -343,6 +380,14 @@ public class Fingerprint {
             SpanLabel lblReason = new SpanLabel(reason, "DialogBody");
             FontImage.setMaterialIcon(fingerprintIcon, FontImage.MATERIAL_FINGERPRINT, 7);
             d.add(BorderLayout.CENTER, BoxLayout.encloseY(iconWrapper, lblReason));
+            Button cancel = new Button("Cancel");
+            cancel.addActionListener(e->{
+                if (!request.isDone()) {
+                    request.cancel(true);
+                }
+                d.dispose();
+            });
+            d.add(BorderLayout.SOUTH, cancel);
             d.showPacked(BorderLayout.CENTER, false);
             request.onResult((res, err)->{
                 d.dispose();

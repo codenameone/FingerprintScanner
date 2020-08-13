@@ -21,6 +21,8 @@ var o = {};
     o.getPassword__int_java_lang_String_java_lang_String = function(param1, param2, param3, callback) {
         callback.error(new Error("Not implemented yet"));
     };
+    
+    o.cancelRequest__int = function(requestId){};
 
     o.isSupported_ = function(callback) {
         callback.complete(false);

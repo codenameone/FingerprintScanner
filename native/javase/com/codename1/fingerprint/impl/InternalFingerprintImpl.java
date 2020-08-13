@@ -52,5 +52,7 @@ public class InternalFingerprintImpl implements com.codename1.fingerprint.impl.I
         installBuildHints();
         InternalCallback.requestError(requestId, "getSecureItem not supported on this platform");
     }
+    
+    public void cancelRequest(int requestId) {}
 
 }

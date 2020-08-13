@@ -22,5 +22,7 @@ public class InternalFingerprintImpl {
     public void getPassword(int requestId, String reason, String key) {
         
     }
+    
+    public void cancelRequest(int requestId){}
 
 }

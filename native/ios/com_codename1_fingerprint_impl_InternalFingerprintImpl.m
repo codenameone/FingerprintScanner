@@ -134,6 +134,9 @@
         OSStatus status = SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)changes);
         if (status == errSecSuccess) {
             com_codename1_fingerprint_impl_InternalCallback_requestComplete___int_boolean(getThreadLocalData(), requestId, JAVA_TRUE);
+        } else if (status == errSecUserCanceled) {
+            JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), @"__CANCELLED__");
+            com_codename1_fingerprint_impl_InternalCallback_requestError___int_java_lang_String(getThreadLocalData(), requestId, jErrorMessage);
         } else {
             NSString* errorMessage = [self errorString:status];
             JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), errorMessage);
@@ -164,6 +167,9 @@
         }
         if (status == errSecSuccess) {
             com_codename1_fingerprint_impl_InternalCallback_requestComplete___int_boolean(getThreadLocalData(), requestId, JAVA_TRUE);
+        } else if (status == errSecUserCanceled) {
+            JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), @"__CANCELLED__");
+            com_codename1_fingerprint_impl_InternalCallback_requestError___int_java_lang_String(getThreadLocalData(), requestId, jErrorMessage);
         } else {
             NSString* errorMessage = [self errorString:status];
             JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), errorMessage);
@@ -194,6 +200,9 @@
         OSStatus status = SecItemDelete((__bridge CFDictionaryRef)dict);
         if (status == errSecSuccess) {
             com_codename1_fingerprint_impl_InternalCallback_requestComplete___int_boolean(getThreadLocalData(), requestId, JAVA_TRUE);
+        } else if (status == errSecUserCanceled) {
+            JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), @"__CANCELLED__");
+            com_codename1_fingerprint_impl_InternalCallback_requestError___int_java_lang_String(getThreadLocalData(), requestId, jErrorMessage);
         } else {
             NSString* errorMessage = [self errorString:status];
             JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), errorMessage);
@@ -219,6 +228,9 @@
             NSString* dataStr = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
             JAVA_OBJECT jDataStr = fromNSString(getThreadLocalData(), dataStr);
             com_codename1_fingerprint_impl_InternalCallback_requestSuccess___int_java_lang_String(getThreadLocalData(), requestId, jDataStr);
+        } else if (status == errSecUserCanceled) {
+            JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), @"__CANCELLED__");
+            com_codename1_fingerprint_impl_InternalCallback_requestError___int_java_lang_String(getThreadLocalData(), requestId, jErrorMessage);
         } else {
             NSString* errorMessage = [self errorString:status];
             JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), errorMessage);
@@ -227,5 +239,8 @@
     });
 }
 
+-(void)cancelRequest:(int)requestId {
+    NSLog(@"User requested cancelling fingerprint/faceID request.  Not implemented on iOS.");
+}
 
 @end

@@ -372,10 +372,10 @@ public class InternalFingerprintImpl {
                             // either the user cancels the action, it succeeds, or until
                             // we cancel the action with cs.cancel.
                             // Here, we'll try 5 times then quit.
-                            if (failures++ > 5) {
-                                cs.cancel();
-                                InternalCallback.requestComplete(requestId, false);
-                            }
+                            //if (failures++ > 5) {
+                            //    cs.cancel();
+                            //    InternalCallback.requestComplete(requestId, false);
+                            //}
                         }
 
                         public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
@@ -431,7 +431,7 @@ public class InternalFingerprintImpl {
                         .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        InternalCallback.requestError(requestId, "Cancelled by the user");
+                        InternalCallback.requestError(requestId, "__CANCELLED__");
                     }
                 })
                 .build().authenticate(crypto, cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
@@ -507,10 +507,10 @@ public class InternalFingerprintImpl {
                             // either the user cancels the action, it succeeds, or until
                             // we cancel the action with cs.cancel.
                             // Here, we'll try 5 times then quit.
-                            if (failures++ > 5) {
-                                cs.cancel();
-                                InternalCallback.requestComplete(requestId, false);
-                            }
+                            //if (failures++ > 5) {
+                            //    cs.cancel();
+                            //    InternalCallback.requestComplete(requestId, false);
+                            //}
                         }
 
                         public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
@@ -644,10 +644,10 @@ public class InternalFingerprintImpl {
                             // either the user cancels the action, it succeeds, or until
                             // we cancel the action with cs.cancel.
                             // Here, we'll try 5 times then quit.
-                            if (failures++ > 5) {
-                                cs.cancel();
-                                InternalCallback.requestError(requestId, "Authentication failed");
-                            }
+                            //if (failures++ > 5) {
+                            //    cs.cancel();
+                            //    InternalCallback.requestError(requestId, "Authentication failed");
+                            //}
 
                         }
 
@@ -696,7 +696,7 @@ public class InternalFingerprintImpl {
                         .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        InternalCallback.requestError(requestId, "Cancelled by the user");
+                        InternalCallback.requestError(requestId, "__CANCELLED__");
                     }
                 })
                 .build().authenticate(crypto, cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
@@ -776,10 +776,10 @@ public class InternalFingerprintImpl {
                             // either the user cancels the action, it succeeds, or until
                             // we cancel the action with cs.cancel.
                             // Here, we'll try 5 times then quit.
-                            if (failures++ > 5) {
-                                cs.cancel();
-                                InternalCallback.requestError(requestId, "Authentication failed");
-                            }
+                            //if (failures++ > 5) {
+                            //    cs.cancel();
+                            //    InternalCallback.requestError(requestId, "Authentication failed");
+                            //}
 
                         }
 
@@ -1001,5 +1001,18 @@ public class InternalFingerprintImpl {
         } catch (KeyStoreException e) {
             Log.e(e);
         }
+    }
+    
+    public void cancelRequest(final int requestId) {
+         AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                if (cancellationSignal != null) {
+                    cancellationSignal.cancel();
+                    cancellationSignal = null;
+                    InternalCallback.requestError(requestId, "__CANCELLED__");
+                }
+                
+            }
+         });
     }
 }

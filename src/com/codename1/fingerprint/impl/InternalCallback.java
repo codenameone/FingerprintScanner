@@ -120,7 +120,9 @@ public class InternalCallback {
             return;
         }
         requests.remove(requestId);
-        req.complete(value);
+        if (!req.isDone()) {
+            req.complete(value);
+        }
     }
     
     public static void requestError(int requestId, String message) {
@@ -129,7 +131,13 @@ public class InternalCallback {
             return;
         }
         requests.remove(requestId);
-        req.error(new RuntimeException(message));
+        if (!req.isDone()) {
+            if ("__CANCELLED__".equals(message)) {
+                req.cancel(true);
+            } else {
+                req.error(new RuntimeException(message));
+            }
+        }
     }
     
     public static void requestKeyRevokedError(int requestId, String message) {
@@ -138,7 +146,13 @@ public class InternalCallback {
             return;
         }
         requests.remove(requestId);
-        req.error(new KeyRevokedException(message));
+        if (!req.isDone()) {
+            if ("__CANCELLED__".equals(message)) {
+                req.cancel(true);
+            } else {
+                req.error(new KeyRevokedException(message));
+            }
+        } 
     }
     
     public static void requestComplete(int requestId, boolean success) {
@@ -147,6 +161,8 @@ public class InternalCallback {
             return;
         }
         requests.remove(requestId);
-        req.complete(success);
+        if (!req.isDone()) {
+            req.complete(success);
+        }
     }
 }
