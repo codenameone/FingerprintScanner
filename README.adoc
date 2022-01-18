@@ -125,7 +125,7 @@ Passwords stored in the keychain will be automatically purged if any of the foll
 
 === Android Implementation
 
-Currently, on Android we are using the https://developer.android.com/reference/android/hardware/fingerprint/FingerprintManager[FingerprintManager] class for authentication.  We are working on migrating to https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt[BiometricPrompt] on devices running API 28 and higher.  When that is added, devices on API 23-27 will still use FingerPrintManager.
+Currently, on Android we are using the https://developer.android.com/reference/android/hardware/fingerprint/FingerprintManager[FingerprintManager] class for authentication on API 28 (Android 9) and lower and https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt[BiometricPrompt] on devices running API 29 (Android 10) and higher.  This means that Android 9, despite supporting Face recognition at an OS level, will use FingerPrintManager and will not support face recognition for authentication.  Future versions may attempt to incorporate workarounds to add this support to Android 9, e.g. https://github.com/sergeykomlach/AdvancedBiometricPromptCompat[AdvancedBiometricPromptCompat].
 
 Passwords are not, themselves, stored inside the system Keystore.  Rather, a symmetric Key is generated and stored inside the keychain, which is used to encrypt and decrypt the passwords, which are stored private `SharedPreferences`.
 
