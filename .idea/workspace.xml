@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="791ac7de-2314-4871-80e8-bb25b13cdfb9" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AndroidProject/build.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AndroidProject/manifest.mf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/build-impl.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/genfiles.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/project.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.adoc" beforeDir="false" afterPath="$PROJECT_DIR$/README.adoc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/FingerprintScanner.cn1lib" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codenameone_library_appended.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codenameone_library_required.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/manifest.mf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/manifest.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/android/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/ios/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/ios/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/j2me/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/javascript/com_codename1_fingerprint_impl_InternalFingerprint.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/javase/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/rim/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/native/win/com/codename1/fingerprint/impl/InternalFingerprintImpl.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nbproject/build-impl.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nbproject/genfiles.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nbproject/nativej2me.res" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nbproject/project.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nbproject/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/Fingerprint.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/KeyRevokedException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/impl/InternalCallback.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/impl/InternalFingerprint.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="MavenRunner">
+    <option name="delegateBuildToMaven" value="true" />
+  </component>
+  <component name="ProjectId" id="1pD3iE4rAr4Bw5nFw0V4y00PCKh" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/images" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="791ac7de-2314-4871-80e8-bb25b13cdfb9" name="Default Changelist" comment="" />
+      <created>1614703962614</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1614703962614</updated>
+    </task>
+    <servers />
+  </component>
+</project>

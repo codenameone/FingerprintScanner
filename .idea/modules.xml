@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/codenameone-maven-manual.iml" filepath="$PROJECT_DIR$/.idea/codenameone-maven-manual.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/fingerprint-scanner-android.iml" filepath="$PROJECT_DIR$/android/fingerprint-scanner-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common/fingerprint-scanner-common.iml" filepath="$PROJECT_DIR$/common/fingerprint-scanner-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ios/fingerprint-scanner-ios.iml" filepath="$PROJECT_DIR$/ios/fingerprint-scanner-ios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/javascript/fingerprint-scanner-javascript.iml" filepath="$PROJECT_DIR$/javascript/fingerprint-scanner-javascript.iml" />
+      <module fileurl="file://$PROJECT_DIR$/javase/fingerprint-scanner-javase.iml" filepath="$PROJECT_DIR$/javase/fingerprint-scanner-javase.iml" />
+      <module fileurl="file://$PROJECT_DIR$/lib/fingerprint-scanner-lib.iml" filepath="$PROJECT_DIR$/lib/fingerprint-scanner-lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/fingerprint-scanner-tests.iml" filepath="$PROJECT_DIR$/tests/fingerprint-scanner-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/common/fingerprint-scanner-tests-common.iml" filepath="$PROJECT_DIR$/tests/common/fingerprint-scanner-tests-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/javase/fingerprint-scanner-tests-javase.iml" filepath="$PROJECT_DIR$/tests/javase/fingerprint-scanner-tests-javase.iml" />
+      <module fileurl="file://$PROJECT_DIR$/win/fingerprint-scanner-win.iml" filepath="$PROJECT_DIR$/win/fingerprint-scanner-win.iml" />
+    </modules>
+  </component>
+</project>

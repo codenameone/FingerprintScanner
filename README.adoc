@@ -14,6 +14,20 @@ Currently this library supports only Android (API 23+), and iOS.
 
 For instructions on installing cn1libs, see https://www.codenameone.com/blog/automatically-install-update-distribute-cn1libs-extensions.html[this tutorial].
 
+=== Alternate Maven Installation
+
+If your project uses Maven, the above installation instructions will still work, but you can alternately simply add the Maven dependency to your common/pom.xml file:
+
+[source,xml]
+----
+<dependency>
+  <groupId>com.codenameone</groupId>
+  <artifactId>fingerprint-scanner-lib</artifactId>
+  <version>1.0</version>
+  <type>pom</type>
+</dependency>
+----
+
 [IMPORTANT]
 ====
 Android builds *must* use build tools 29 or higher.  E.g.  Add the following build hints:
@@ -166,5 +180,24 @@ For more details on what these mean, see the following documentation pages:
 . https://developer.apple.com/documentation/security/secaccesscontrolref?language=objc[SecAccessControlRef]
 . https://developer.apple.com/documentation/security/ksecattraccessiblewhenpasscodesetthisdeviceonly?language=objc[kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly]
 . https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/ksecaccesscontroltouchidcurrentset?language=objc[kSecAccessControlTouchIDCurrentSet]
+
+
+== Working with the Sources
+
+. Check out with `git clone https://github.com/codenameone/FingerprintScanner`
+. Build with `mvn package`
+.. You'll find cn1lib in the _common/target_ directory.
+
+See https://shannah.github.io/codenameone-maven-manual/[the Codename One Maven Manual] for more information about working with Codename One Maven projects.
+
+=== Releasing to Maven Central
+
+1. Set up your ~/.m2/settings.xml file with credentials for Maven central.
+2. Run `bash update-version.sh $NEW_VERSION` where `$NEW_VERSION` is the new version.  E.g. "1.1".
+3. `git push && git push --tags` to push the new version tag to git.
+4. `mvn deploy -Psign-artifacts`
+5. Log into Maven central and complete the release.
+6. Run `bash update-version $NEW_SNAPSHOT_VERSION` where `$NEW_SNAPSHOT_VERSION` is the next snapshot version  E.g. 1.2-SNAPSHOT.
+
 
 

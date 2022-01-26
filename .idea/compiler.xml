@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="fingerprint-scanner-tests-common" />
+        <module name="fingerprint-scanner-javascript" />
+        <module name="fingerprint-scanner-javase" />
+        <module name="fingerprint-scanner-win" />
+        <module name="fingerprint-scanner-ios" />
+        <module name="fingerprint-scanner-tests-javase" />
+        <module name="fingerprint-scanner-android" />
+        <module name="fingerprint-scanner-common" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="codenameone-maven-manual" target="8" />
+      <module name="fingerprint-scanner-android" target="8" />
+      <module name="fingerprint-scanner-common" target="8" />
+      <module name="fingerprint-scanner-ios" target="8" />
+      <module name="fingerprint-scanner-javascript" target="8" />
+      <module name="fingerprint-scanner-javase" target="1.8" />
+      <module name="fingerprint-scanner-lib" target="1.8" />
+      <module name="fingerprint-scanner-tests" target="8" />
+      <module name="fingerprint-scanner-tests-common" target="8" />
+      <module name="fingerprint-scanner-tests-javase" target="1.8" />
+      <module name="fingerprint-scanner-win" target="8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
