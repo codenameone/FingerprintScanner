@@ -5,37 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="791ac7de-2314-4871-80e8-bb25b13cdfb9" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AndroidProject/build.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AndroidProject/manifest.mf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/build-impl.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/genfiles.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/project.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AndroidProject/nbproject/project.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.adoc" beforeDir="false" afterPath="$PROJECT_DIR$/README.adoc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/FingerprintScanner.cn1lib" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/codenameone_library_appended.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/codenameone_library_required.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/manifest.mf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/manifest.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/android/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/ios/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/ios/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/j2me/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/javascript/com_codename1_fingerprint_impl_InternalFingerprint.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/javase/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/rim/com/codename1/fingerprint/impl/InternalFingerprintImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/native/win/com/codename1/fingerprint/impl/InternalFingerprintImpl.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/nbproject/build-impl.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/nbproject/genfiles.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/nbproject/nativej2me.res" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/nbproject/project.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/nbproject/project.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/Fingerprint.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/KeyRevokedException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/impl/InternalCallback.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/codename1/fingerprint/impl/InternalFingerprint.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_codenameone_codenameone_core_7_0_26.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_codenameone_codenameone_javase_7_0_26.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/fingerprint-scanner-common.iml" beforeDir="false" afterPath="$PROJECT_DIR$/common/fingerprint-scanner-common.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/javase/fingerprint-scanner-javase.iml" beforeDir="false" afterPath="$PROJECT_DIR$/javase/fingerprint-scanner-javase.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/common/fingerprint-scanner-tests-common.iml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/common/fingerprint-scanner-tests-common.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/javase/fingerprint-scanner-tests-javase.iml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/javase/fingerprint-scanner-tests-javase.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,5 +69,16 @@
       <updated>1614703962614</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

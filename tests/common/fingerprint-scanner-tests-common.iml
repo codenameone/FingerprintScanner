@@ -14,6 +14,6 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.codenameone:codenameone-javase:7.0.8-b6" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.xerial:sqlite-jdbc:3.7.15-M1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.jhlabs:filters:2.0.235-1" level="project" />
-    <orderEntry type="module" module-name="fingerprint-scanner-common" />
+    <orderEntry type="library" name="Maven: com.codenameone:fingerprint-scanner-common:1.0-SNAPSHOT" level="project" />
   </component>
 </module>

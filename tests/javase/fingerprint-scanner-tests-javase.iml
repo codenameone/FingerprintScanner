@@ -19,7 +19,7 @@
     <orderEntry type="library" name="Maven: org.xerial:sqlite-jdbc:3.7.15-M1" level="project" />
     <orderEntry type="library" name="Maven: com.jhlabs:filters:2.0.235-1" level="project" />
     <orderEntry type="module" module-name="fingerprint-scanner-tests-common" />
-    <orderEntry type="module" module-name="fingerprint-scanner-common" />
+    <orderEntry type="library" name="Maven: com.codenameone:fingerprint-scanner-common:1.0-SNAPSHOT" level="project" />
     <orderEntry type="module" module-name="fingerprint-scanner-tests-common" scope="TEST" production-on-test="" />
   </component>
 </module>
