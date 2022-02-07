@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
+#import <LocalAuthentication/LocalAuthentication.h>
 
 @interface com_codename1_fingerprint_impl_InternalFingerprintImpl : NSObject {
+    LAContext *_context;
 }
 
 -(BOOL)isAvailable;

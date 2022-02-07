@@ -5,13 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="791ac7de-2314-4871-80e8-bb25b13cdfb9" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_codenameone_codenameone_core_7_0_26.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_codenameone_codenameone_javase_7_0_26.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/fingerprint-scanner-common.iml" beforeDir="false" afterPath="$PROJECT_DIR$/common/fingerprint-scanner-common.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/javase/fingerprint-scanner-javase.iml" beforeDir="false" afterPath="$PROJECT_DIR$/javase/fingerprint-scanner-javase.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/common/fingerprint-scanner-tests-common.iml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/common/fingerprint-scanner-tests-common.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/javase/fingerprint-scanner-tests-javase.iml" beforeDir="false" afterPath="$PROJECT_DIR$/tests/javase/fingerprint-scanner-tests-javase.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" beforeDir="false" afterPath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" beforeDir="false" afterPath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +24,15 @@
       <filtered-out-file-type name="TAG" />
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/.gitignore" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/update-version.sh" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/print-version.sh" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/pom.xml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../CodenameOneLibs/CN1Libs.xml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/lib/pom.xml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/common/pom.xml" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -50,6 +55,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
