@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="791ac7de-2314-4871-80e8-bb25b13cdfb9" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" beforeDir="false" afterPath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" beforeDir="false" afterPath="$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,8 +28,10 @@
     <setting file="file://$PROJECT_DIR$/update-version.sh" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/print-version.sh" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/pom.xml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.m" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../CodenameOneLibs/CN1Libs.xml" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/lib/pom.xml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ios/src/main/objectivec/com_codename1_fingerprint_impl_InternalFingerprintImpl.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/common/pom.xml" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
