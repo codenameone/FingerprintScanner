@@ -4,11 +4,11 @@
   <parent>
       <groupId>com.codenameone</groupId>
       <artifactId>fingerprint-scanner</artifactId>
-      <version>1.1.2-SNAPSHOT</version>
+      <version>1.1.2</version>
   </parent>
   <groupId>com.codenameone</groupId>
   <artifactId>fingerprint-scanner-android</artifactId>
-  <version>1.1.2-SNAPSHOT</version>
+  <version>1.1.2</version>
 
   <name>fingerprint-scanner-android</name>
   <build>

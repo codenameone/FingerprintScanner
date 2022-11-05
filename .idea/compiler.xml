@@ -17,17 +17,17 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="codenameone-maven-manual" target="8" />
-      <module name="fingerprint-scanner-android" target="8" />
-      <module name="fingerprint-scanner-common" target="8" />
-      <module name="fingerprint-scanner-ios" target="8" />
-      <module name="fingerprint-scanner-javascript" target="8" />
+      <module name="codenameone-maven-manual" target="1.8" />
+      <module name="fingerprint-scanner-android" target="1.8" />
+      <module name="fingerprint-scanner-common" target="1.8" />
+      <module name="fingerprint-scanner-ios" target="1.8" />
+      <module name="fingerprint-scanner-javascript" target="1.8" />
       <module name="fingerprint-scanner-javase" target="1.8" />
       <module name="fingerprint-scanner-lib" target="1.8" />
-      <module name="fingerprint-scanner-tests" target="8" />
-      <module name="fingerprint-scanner-tests-common" target="8" />
+      <module name="fingerprint-scanner-tests" target="1.8" />
+      <module name="fingerprint-scanner-tests-common" target="1.8" />
       <module name="fingerprint-scanner-tests-javase" target="1.8" />
-      <module name="fingerprint-scanner-win" target="8" />
+      <module name="fingerprint-scanner-win" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
