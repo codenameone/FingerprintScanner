@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="791ac7de-2314-4871-80e8-bb25b13cdfb9" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/codenameone_library_appended.properties" beforeDir="false" afterPath="$PROJECT_DIR$/common/codenameone_library_appended.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/com/codenameone/MyLibrary.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
