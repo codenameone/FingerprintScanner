@@ -6,18 +6,18 @@
  * published by the Free Software Foundation.  Codename One designates this
  * particular file as subject to the "Classpath" exception as provided
  * by Oracle in the LICENSE file that accompanied this code.
- *  
+ *
  * This code is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * version 2 for more details (a copy is included in the LICENSE file that
  * accompanied this code).
- * 
+ *
  * You should have received a copy of the GNU General Public License version
  * 2 along with this work; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- * 
- * Please contact Codename One through http://www.codenameone.com/ if you 
+ *
+ * Please contact Codename One through http://www.codenameone.com/ if you
  * need additional information or have any questions.
  */
 package com.codename1.fingerprint.impl;
@@ -71,9 +71,9 @@ public class InternalFingerprintImpl {
     private KeyStore mKeyStore;
     private Cipher mCipher;
     private static CancellationSignal cancellationSignal;
-    
-    
-       
+
+
+
     public boolean isAvailable() {
         //final boolean[] response = new boolean[1];
         if (android.os.Build.VERSION.SDK_INT < 23) {
@@ -91,7 +91,7 @@ public class InternalFingerprintImpl {
                     try {
                         if (mBiometricManager == null) {
                             mBiometricManager = (BiometricManager)AndroidNativeUtil.getActivity().
-                                                                                                    getSystemService(Activity.BIOMETRIC_SERVICE);
+                                    getSystemService(Activity.BIOMETRIC_SERVICE);
                         }
                         PackageManager packageManager = AndroidNativeUtil.getActivity().getPackageManager();
                         boolean canAuthenticate = mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
@@ -110,7 +110,7 @@ public class InternalFingerprintImpl {
                             }
                         }
 
-                        
+
                     } catch(Throwable t) {
                         Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
                         Log.e(t);
@@ -127,9 +127,9 @@ public class InternalFingerprintImpl {
                     }
                     try {
                         mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
-                                                                                                getSystemService(Activity.FINGERPRINT_SERVICE);
+                                getSystemService(Activity.FINGERPRINT_SERVICE);
 
-                        if (mFingerPrintManager.isHardwareDetected() && 
+                        if (mFingerPrintManager.isHardwareDetected() &&
                                 mFingerPrintManager.hasEnrolledFingerprints()) {
                             paramBuilder.append("touch ");
                         }
@@ -142,13 +142,13 @@ public class InternalFingerprintImpl {
         }
         String param = paramBuilder.toString().trim();
         CN.setProperty("Fingerprint.types", param);
-        
+
         return !param.isEmpty();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void scan29(final String reason) {
-        AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+        runOnUiThreadIfNotAlready(new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             public void run() {
                 if (cancellationSignal != null) {
@@ -160,7 +160,7 @@ public class InternalFingerprintImpl {
                 }
                 final CancellationSignal cs = new CancellationSignal();
                 cancellationSignal = cs;
-                
+
                 BiometricPrompt.AuthenticationCallback callback = new BiometricPrompt.AuthenticationCallback() {
                     int failures;
                     public void onAuthenticationError(int errorCode, CharSequence errString) {
@@ -169,18 +169,18 @@ public class InternalFingerprintImpl {
 
                     public void onAuthenticationFailed() {
                         // NOTE: Often authentication fails several times
-                            // before it succeeds.  Because often times it takes a while
-                            // for the user to put their finger in the right spot
-                            // This method will be called continually in a stream until
-                            // either the user cancels the action, it succeeds, or until
-                            // we cancel the action with cs.cancel.
-                            // Here, we'll try 5 times then quit.
+                        // before it succeeds.  Because often times it takes a while
+                        // for the user to put their finger in the right spot
+                        // This method will be called continually in a stream until
+                        // either the user cancels the action, it succeeds, or until
+                        // we cancel the action with cs.cancel.
+                        // Here, we'll try 5 times then quit.
                         if (failures++ > 5) {
                             cs.cancel();
                             InternalCallback.scanFail();
                         }
                     }
-                    
+
                     public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                         cs.cancel();
                         InternalCallback.scanSuccess();
@@ -189,29 +189,29 @@ public class InternalFingerprintImpl {
                 new BiometricPrompt.Builder(AndroidNativeUtil.getActivity())
                         .setTitle(reason)
                         .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        InternalCallback.scanFail();
-                    }
-                })
-                .build().authenticate(cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
-                
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                InternalCallback.scanFail();
+                            }
+                        })
+                        .build().authenticate(cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
+
             }
         });
     }
-    
+
     public void scan(String reason) {
         if (android.os.Build.VERSION.SDK_INT < 23) {
             Log.p("minimum SDK version 23 required");
             InternalCallback.scanFail();
         }
-        
+
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             scan29(reason);
             return;
         }
-        
-        AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+
+        runOnUiThreadIfNotAlready(new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void run() {
                 if (cancellationSignal != null) {
@@ -223,7 +223,7 @@ public class InternalFingerprintImpl {
                 }
                 final CancellationSignal cs = new CancellationSignal();
                 cancellationSignal = cs;
-                
+
                 AuthenticationCallback callback = new AuthenticationCallback() {
                     int failures;
                     public void onAuthenticationError(int errorCode, CharSequence errString) {
@@ -232,24 +232,24 @@ public class InternalFingerprintImpl {
 
                     public void onAuthenticationFailed() {
                         // NOTE: Often authentication fails several times
-                            // before it succeeds.  Because often times it takes a while
-                            // for the user to put their finger in the right spot
-                            // This method will be called continually in a stream until
-                            // either the user cancels the action, it succeeds, or until
-                            // we cancel the action with cs.cancel.
-                            // Here, we'll try 5 times then quit.
+                        // before it succeeds.  Because often times it takes a while
+                        // for the user to put their finger in the right spot
+                        // This method will be called continually in a stream until
+                        // either the user cancels the action, it succeeds, or until
+                        // we cancel the action with cs.cancel.
+                        // Here, we'll try 5 times then quit.
                         if (failures++ > 5) {
                             cs.cancel();
                             InternalCallback.scanFail();
                         }
                     }
-                    
+
                     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
                         cs.cancel();
                         InternalCallback.scanSuccess();
                     }
                 };
-                
+
                 mFingerPrintManager.authenticate(null, cs, 0, callback, null);
             }
         });
@@ -261,52 +261,52 @@ public class InternalFingerprintImpl {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private boolean isFingerprintAuthAvailable() {
-        
+
         if (Looper.getMainLooper().isCurrentThread()) {
             if(!AndroidNativeUtil.checkForPermission(Manifest.permission.USE_FINGERPRINT, "Authorize using fingerprint")){
-                    return false;
-                }
-                try {
-                    mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
-                                                                                            getSystemService(Activity.FINGERPRINT_SERVICE);
+                return false;
+            }
+            try {
+                mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
+                        getSystemService(Activity.FINGERPRINT_SERVICE);
 
-                    return mFingerPrintManager.isHardwareDetected() && 
+                return mFingerPrintManager.isHardwareDetected() &&
                         mFingerPrintManager.hasEnrolledFingerprints();
-                } catch(Throwable t) {
-                    Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
-                    Log.e(t);
-                    return false;
-                }
+            } catch(Throwable t) {
+                Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
+                Log.e(t);
+                return false;
+            }
         } else {
             return isAvailable();
         }
     }
-    
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private boolean isBiometricAuthAvailable() {
-        
+
         if (Looper.getMainLooper().isCurrentThread()) {
             if(!AndroidNativeUtil.checkForPermission(Manifest.permission.USE_FINGERPRINT, "Authorize using fingerprint")){
-                    return false;
+                return false;
+            }
+            try {
+                if (mBiometricManager == null) {
+                    mBiometricManager = (BiometricManager)AndroidNativeUtil.getActivity().
+                            getSystemService(Activity.BIOMETRIC_SERVICE);
                 }
-                try {
-                    if (mBiometricManager == null) {
-                        mBiometricManager = (BiometricManager)AndroidNativeUtil.getActivity().
-                                                                                            getSystemService(Activity.BIOMETRIC_SERVICE);
-                    }
 
-                    return mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
-                } catch(Throwable t) {
-                    Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
-                    Log.e(t);
-                    return false;
-                }
+                return mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
+            } catch(Throwable t) {
+                Log.p("This exception could be 100% valid on old devices, we're logging it just to be safe. Older devices might throw NoClassDefFoundError...");
+                Log.e(t);
+                return false;
+            }
         } else {
             return isAvailable();
         }
     }
-    
-    
+
+
     public void addPassword(int requestId, String reason, String key, String value) {
         if (android.os.Build.VERSION.SDK_INT < 23) {
             Log.p("minimum SDK version 23 required");
@@ -319,11 +319,10 @@ public class InternalFingerprintImpl {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void tryAddPassword29(String account, String password, SharedPreferences.Editor editor) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        byte[] enc = new byte[0];
+    private void tryAddPassword29(String account, String password, SharedPreferences.Editor editor) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = mCipher();
         cipher.init(Cipher.ENCRYPT_MODE, getSecretKey());
-        enc = cipher.doFinal(password.getBytes());
+        byte[] enc = cipher.doFinal(password.getBytes());
 
         editor.putString("fing" + account, Base64.encodeToString(enc, Base64.DEFAULT));
         editor.putString("fing_iv" + account,
@@ -331,7 +330,7 @@ public class InternalFingerprintImpl {
 
         editor.apply();
     }
-    
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private boolean addPassword29(final int requestId, final String reason, final String account, final String password, final boolean requestAuth, final int depth) {
         if (android.os.Build.VERSION.SDK_INT < 23) {
@@ -345,16 +344,15 @@ public class InternalFingerprintImpl {
             SecretKey secretKey = getSecretKey();
 
             if (secretKey == null) {
-                if (createKey(true)) {
+                if (createKey()) {
                     secretKey = getSecretKey();
-                } else if( createKey(false)) {
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
                     return false;
                 }
             }
 
-            AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+            runOnUiThreadIfNotAlready(new Runnable() {
                 public void run() {
                     if (cancellationSignal != null) {
                         // Fingerprint scanning can continue for a long time even after the user
@@ -365,19 +363,13 @@ public class InternalFingerprintImpl {
                     }
                     final CancellationSignal cs = new CancellationSignal();
                     cancellationSignal = cs;
-
-                    try {
-                        tryAddPassword29(account, password, editor);
-                        InternalCallback.requestComplete(requestId, true);
-                        return;
-                    } catch (Exception ex) {
-                        Log.p("Failed to add password.  Need to authenticate", Log.ERROR);
-                    }
                     BiometricPrompt.AuthenticationCallback callback = new BiometricPrompt.AuthenticationCallback() {
                         int failures;
                         public void onAuthenticationError(int errorCode, CharSequence errString) {
+
                             InternalCallback.requestError(requestId, String.valueOf(errString));
                         }
+
 
                         public void onAuthenticationFailed() {
                             // NOTE: Often authentication fails several times
@@ -407,31 +399,31 @@ public class InternalFingerprintImpl {
                                 editor.apply();
                                 InternalCallback.requestComplete(requestId, true);
                             } catch (Throwable e) {
-                                if (depth == 0) {
-                                    // This typically shouldn't happen.  If the key was invalidated, it should have caught
-                                    // it before the authentication step in initCipher.  BUT in some cases, e.g. Samsung
-                                    // phones on 8.0.0, it somehow passes that initial step without failure, but fails
-                                    // here.
-                                    //https://issuetracker.google.com/u/0/issues/65578763
-                                    removePermanentlyInvalidatedKey();
-                                    addPassword29(requestId, reason, account, password, requestAuth, depth + 1);
-                                } else {
 
+                                // https://github.com/codenameone/FingerprintScanner/issues/8
+                                removePermanentlyInvalidatedKey();
+                                mCipher = null;
 
-                                    Log.e(e);
-                                    InternalCallback.requestError(requestId, e.getMessage());
+                                try {
+                                    createKey();
+                                    tryAddPassword29(account, password, editor);
+                                    InternalCallback.requestComplete(requestId, true);
+                                    return;
+                                } catch (Exception ex) {
+                                    Log.e(ex);
+                                    InternalCallback.requestError(requestId, String.valueOf("Failed to add password: " + ex.getMessage()));
+                                    return;
                                 }
+
                             }
 
                         }
                     };
                     if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                         // Could not initialize cipher, key must have been invalidated
-                        if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
-                            createKey(true);
-                        }
-                        if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
-                            createKey(false);
+                        if (!createKey()) {
+                            InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
+                            return;
                         }
                         if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                             InternalCallback.requestError(requestId, "Failed to initialize the cipher even after generating new key.  Something must be wrong");
@@ -441,18 +433,18 @@ public class InternalFingerprintImpl {
 
                     }
                     BiometricPrompt.CryptoObject crypto = new BiometricPrompt.CryptoObject(mCipher());
-                    
+
                     //mBiometricManager.authenticate(crypto, cs, 0, callback, null);
-                   new BiometricPrompt.Builder(AndroidNativeUtil.getActivity())
-                        .setTitle(reason)
-                        .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        InternalCallback.requestError(requestId, "__CANCELLED__");
-                    }
-                })
-                .build().authenticate(crypto, cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
-                            
+                    new BiometricPrompt.Builder(AndroidNativeUtil.getActivity())
+                            .setTitle(reason)
+                            .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    InternalCallback.requestError(requestId, "__CANCELLED__");
+                                }
+                            })
+                            .build().authenticate(crypto, cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
+
                 }
             });
 
@@ -461,7 +453,7 @@ public class InternalFingerprintImpl {
 
         }
         return true;
-        
+
     }
     /**
      * Adds a secure item.
@@ -486,7 +478,7 @@ public class InternalFingerprintImpl {
             SecretKey secretKey = getSecretKey();
 
             if (secretKey == null) {
-                if (createKey(false)) {
+                if (createKey()) {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
@@ -497,7 +489,7 @@ public class InternalFingerprintImpl {
 
 
 
-            AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+            runOnUiThreadIfNotAlready(new Runnable() {
                 public void run() {
                     if (cancellationSignal != null) {
                         // Fingerprint scanning can continue for a long time even after the user
@@ -515,7 +507,7 @@ public class InternalFingerprintImpl {
                             InternalCallback.requestError(requestId, String.valueOf(errString));
                         }
 
-                        
+
                         public void onAuthenticationFailed() {
                             // NOTE: Often authentication fails several times
                             // before it succeeds.  Because often times it takes a while
@@ -564,7 +556,7 @@ public class InternalFingerprintImpl {
                     };
                     if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                         // Could not initialize cipher, key must have been invalidated
-                        if (!createKey(false)) {
+                        if (!createKey()) {
                             InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
                             return;
                         }
@@ -585,7 +577,7 @@ public class InternalFingerprintImpl {
 
         }
         return true;
-        
+
     }
     public void deletePassword(int requestId, String reason, String account) {
         SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
@@ -603,7 +595,7 @@ public class InternalFingerprintImpl {
             getPassword(requestId, reason, key, true);
         }
     }
-    
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private boolean getPassword29(final int requestId, final String reason, final String key, final boolean requestAuth) {
 
@@ -633,8 +625,8 @@ public class InternalFingerprintImpl {
             }
 
 
-            
-            AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+
+            runOnUiThreadIfNotAlready(new Runnable() {
                 @RequiresApi(api = Build.VERSION_CODES.Q)
                 public void run() {
                     // Fingerprint scanning can continue for a long time even after the user
@@ -709,14 +701,14 @@ public class InternalFingerprintImpl {
                     BiometricPrompt.CryptoObject crypto = new BiometricPrompt.CryptoObject(mCipher());
                     //mFingerPrintManager.authenticate(crypto, cs, 0, callback, null);
                     new BiometricPrompt.Builder(AndroidNativeUtil.getActivity())
-                        .setTitle(reason)
-                        .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        InternalCallback.requestError(requestId, "__CANCELLED__");
-                    }
-                })
-                .build().authenticate(crypto, cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
+                            .setTitle(reason)
+                            .setNegativeButton("Cancel", AndroidNativeUtil.getActivity().getMainExecutor(), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    InternalCallback.requestError(requestId, "__CANCELLED__");
+                                }
+                            })
+                            .build().authenticate(crypto, cs, AndroidNativeUtil.getActivity().getMainExecutor(), callback);
                 }
             });
 
@@ -725,7 +717,7 @@ public class InternalFingerprintImpl {
 
         }
         return true;
-        
+
     }
 
     /**
@@ -765,8 +757,8 @@ public class InternalFingerprintImpl {
             }
 
 
-            
-            AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+
+            runOnUiThreadIfNotAlready(new Runnable() {
                 @RequiresApi(api = Build.VERSION_CODES.M)
                 public void run() {
                     // Fingerprint scanning can continue for a long time even after the user
@@ -848,9 +840,9 @@ public class InternalFingerprintImpl {
 
         }
         return true;
-        
+
     }
-    
+
     private KeyStore mKeyStore() {
         if (mKeyStore == null) {
             try {
@@ -866,13 +858,24 @@ public class InternalFingerprintImpl {
         }
         return mKeyStore;
     }
-    
+
+    private KeyGenParameterSpec.Builder decorate(KeyGenParameterSpec.Builder builder) {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            // We don't add setUserAuthenticationRequired on 33+
+            // because of https://github.com/codenameone/FingerprintScanner/issues/8
+        } else  if (Build.VERSION.SDK_INT >= 23){
+            builder.setUserAuthenticationRequired(true);
+        }
+
+        return builder;
+    }
+
     /**
      * Creates a symmetric key in the Android Key Store which can only be used after the user has
      * authenticated with fingerprint.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private boolean createKey(boolean withValiditySeconds) {
+    private boolean createKey() {
         String errorMessage = "";
         String createKeyExceptionErrorPrefix = "Failed to create key: ";
         boolean isKeyCreated = false;
@@ -883,18 +886,11 @@ public class InternalFingerprintImpl {
             mKeyStore().load(null);
             // Set the alias of the entry in Android KeyStore where the key will appear
             // and the constrains (purposes) in the constructor of the Builder
-            KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(KEY_ID,
+            mKeyGenerator.init(decorate(new KeyGenParameterSpec.Builder(KEY_ID,
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT).setBlockModes(
                             KeyProperties.BLOCK_MODE_CBC)
-
-                    .setUserAuthenticationRequired(true)
-
-                    //.setUserAuthenticationValidityDurationSeconds(30)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
-            if (withValiditySeconds) {
-                builder.setUserAuthenticationValidityDurationSeconds(30);
-            }
-            mKeyGenerator.init(builder.build());
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7))
+                    .build());
             mKeyGenerator.generateKey();
 
             isKeyCreated = true;
@@ -913,9 +909,9 @@ public class InternalFingerprintImpl {
         }
         return isKeyCreated;
     }
-     private boolean keyRevoked = false;
-     private SecretKey getSecretKey() {
-         keyRevoked = false;
+    private boolean keyRevoked = false;
+    private SecretKey getSecretKey() {
+        keyRevoked = false;
         String errorMessage = "";
         String getSecretKeyExceptionErrorPrefix = "Failed to get SecretKey from KeyStore: ";
         SecretKey key = null;
@@ -942,11 +938,11 @@ public class InternalFingerprintImpl {
         }
         return key;
     }
-    
+
     private Cipher mCipher() {
         if (mCipher == null) {
             try {
-            mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES
+                mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES
                         + "/"
                         + KeyProperties.BLOCK_MODE_CBC
                         + "/"
@@ -967,7 +963,7 @@ public class InternalFingerprintImpl {
 
         @RequiresApi(api = Build.VERSION_CODES.M)
         private static boolean initCipher(InternalFingerprintImpl impl, int mode, String account) {
-            
+
             boolean initCipher = false;
             String errorMessage = "";
             String initCipherExceptionErrorPrefix = "Failed to init Cipher: ";
@@ -1019,23 +1015,32 @@ public class InternalFingerprintImpl {
     private void removePermanentlyInvalidatedKey() {
         try {
             mKeyStore().deleteEntry(KEY_ID);
-            mCipher = null;
             Log.p("Permanently invalidated key was removed.");
         } catch (KeyStoreException e) {
             Log.e(e);
         }
     }
-    
+
     public void cancelRequest(final int requestId) {
-         AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
+        runOnUiThreadIfNotAlready(new Runnable() {
             public void run() {
                 if (cancellationSignal != null) {
                     cancellationSignal.cancel();
                     cancellationSignal = null;
                     InternalCallback.requestError(requestId, "__CANCELLED__");
                 }
-                
+
             }
-         });
+        });
+    }
+
+    private void runOnUiThreadIfNotAlready(final Runnable r) {
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            // On UI thread.
+            r.run();
+        } else {
+            // Not on UI thread.
+            AndroidNativeUtil.getActivity().runOnUiThread(r);
+        }
     }
 }
