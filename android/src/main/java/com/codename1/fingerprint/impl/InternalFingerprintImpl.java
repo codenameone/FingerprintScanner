@@ -57,10 +57,7 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 
 
@@ -320,6 +317,20 @@ public class InternalFingerprintImpl {
             addPassword(requestId, reason, key, value, true, 0);
         }
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void tryAddPassword29(String account, String password, SharedPreferences.Editor editor) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        byte[] enc = new byte[0];
+        Cipher cipher = mCipher();
+        cipher.init(Cipher.ENCRYPT_MODE, getSecretKey());
+        enc = cipher.doFinal(password.getBytes());
+
+        editor.putString("fing" + account, Base64.encodeToString(enc, Base64.DEFAULT));
+        editor.putString("fing_iv" + account,
+                Base64.encodeToString(cipher.getIV(), Base64.DEFAULT));
+
+        editor.apply();
+    }
     
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private boolean addPassword29(final int requestId, final String reason, final String account, final String password, final boolean requestAuth, final int depth) {
@@ -342,9 +353,6 @@ public class InternalFingerprintImpl {
                 }
             }
 
-
-
-
             AndroidNativeUtil.getActivity().runOnUiThread(new Runnable() {
                 public void run() {
                     if (cancellationSignal != null) {
@@ -356,14 +364,20 @@ public class InternalFingerprintImpl {
                     }
                     final CancellationSignal cs = new CancellationSignal();
                     cancellationSignal = cs;
+
+                    try {
+                        tryAddPassword29(account, password, editor);
+                        InternalCallback.requestComplete(requestId, true);
+                        return;
+                    } catch (Exception ex) {
+                        Log.p("Failed to add password.  Need to authenticate", Log.ERROR);
+                    }
                     BiometricPrompt.AuthenticationCallback callback = new BiometricPrompt.AuthenticationCallback() {
                         int failures;
                         public void onAuthenticationError(int errorCode, CharSequence errString) {
-
                             InternalCallback.requestError(requestId, String.valueOf(errString));
                         }
 
-                        
                         public void onAuthenticationFailed() {
                             // NOTE: Often authentication fails several times
                             // before it succeeds.  Because often times it takes a while
@@ -871,6 +885,7 @@ public class InternalFingerprintImpl {
                     KeyProperties.BLOCK_MODE_CBC)
 
                     .setUserAuthenticationRequired(true)
+                    .setUserAuthenticationValidityDurationSeconds(30)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                     .build());
             mKeyGenerator.generateKey();
@@ -997,6 +1012,7 @@ public class InternalFingerprintImpl {
     private void removePermanentlyInvalidatedKey() {
         try {
             mKeyStore().deleteEntry(KEY_ID);
+            mCipher = null;
             Log.p("Permanently invalidated key was removed.");
         } catch (KeyStoreException e) {
             Log.e(e);
