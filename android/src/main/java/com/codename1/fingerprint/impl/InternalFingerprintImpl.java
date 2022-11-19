@@ -345,8 +345,9 @@ public class InternalFingerprintImpl {
             SecretKey secretKey = getSecretKey();
 
             if (secretKey == null) {
-                if (createKey()) {
+                if (createKey(true)) {
                     secretKey = getSecretKey();
+                } else if( createKey(false)) {
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
                     return false;
@@ -426,9 +427,11 @@ public class InternalFingerprintImpl {
                     };
                     if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                         // Could not initialize cipher, key must have been invalidated
-                        if (!createKey()) {
-                            InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
-                            return;
+                        if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
+                            createKey(true);
+                        }
+                        if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
+                            createKey(false);
                         }
                         if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                             InternalCallback.requestError(requestId, "Failed to initialize the cipher even after generating new key.  Something must be wrong");
@@ -483,7 +486,7 @@ public class InternalFingerprintImpl {
             SecretKey secretKey = getSecretKey();
 
             if (secretKey == null) {
-                if (createKey()) {
+                if (createKey(false)) {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
@@ -561,7 +564,7 @@ public class InternalFingerprintImpl {
                     };
                     if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                         // Could not initialize cipher, key must have been invalidated
-                        if (!createKey()) {
+                        if (!createKey(false)) {
                             InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
                             return;
                         }
@@ -869,7 +872,7 @@ public class InternalFingerprintImpl {
      * authenticated with fingerprint.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private boolean createKey() {
+    private boolean createKey(boolean withValiditySeconds) {
         String errorMessage = "";
         String createKeyExceptionErrorPrefix = "Failed to create key: ";
         boolean isKeyCreated = false;
@@ -880,14 +883,18 @@ public class InternalFingerprintImpl {
             mKeyStore().load(null);
             // Set the alias of the entry in Android KeyStore where the key will appear
             // and the constrains (purposes) in the constructor of the Builder
-            mKeyGenerator.init(new KeyGenParameterSpec.Builder(KEY_ID,
+            KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(KEY_ID,
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT).setBlockModes(
-                    KeyProperties.BLOCK_MODE_CBC)
+                            KeyProperties.BLOCK_MODE_CBC)
 
                     .setUserAuthenticationRequired(true)
-                    .setUserAuthenticationValidityDurationSeconds(30)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                    .build());
+
+                    //.setUserAuthenticationValidityDurationSeconds(30)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
+            if (withValiditySeconds) {
+                builder.setUserAuthenticationValidityDurationSeconds(30);
+            }
+            mKeyGenerator.init(builder.build());
             mKeyGenerator.generateKey();
 
             isKeyCreated = true;
@@ -902,7 +909,7 @@ public class InternalFingerprintImpl {
         }
         if (!isKeyCreated) {
             Log.p(errorMessage);
-            
+
         }
         return isKeyCreated;
     }
