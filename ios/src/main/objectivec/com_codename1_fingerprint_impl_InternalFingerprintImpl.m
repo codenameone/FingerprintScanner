@@ -121,6 +121,30 @@
     return nsres;
 }
 
+-(NSString*)getKeychainAccessGroup {
+    struct ThreadLocalData* threadStateData = getThreadLocalData();
+    enteringNativeAllocations();
+
+    JAVA_OBJECT key = fromNSString(CN1_THREAD_GET_STATE_PASS_ARG @"Fingerprint.ios.keychainAccessGroup");
+    JAVA_OBJECT defaultVal = fromNSString(CN1_THREAD_GET_STATE_PASS_ARG @"");
+
+    JAVA_OBJECT res = com_codename1_ui_CN_getProperty___java_lang_String_java_lang_String_R_java_lang_String(
+        CN1_THREAD_GET_STATE_PASS_ARG
+        key,
+        defaultVal
+    );
+    finishedNativeAllocations();
+
+    NSString *nsres = toNSString(CN1_THREAD_GET_STATE_PASS_ARG res);
+
+    // Return nil if empty string (to maintain default behavior)
+    if (nsres == nil || [nsres length] == 0) {
+        return nil;
+    }
+
+    return nsres;
+}
+
 -(void)updatePassword:(int)requestId reason:(NSString*)reason account:(NSString*)account password:(NSString*)password {
 
     NSMutableDictionary *query = [NSMutableDictionary dictionary];
@@ -132,6 +156,11 @@
     [query setObject:[self getAppName] forKey:(__bridge id) kSecAttrService];
     [query setObject:reason forKey:(__bridge id)kSecUseOperationPrompt];
 
+    // Add custom access group if specified
+    NSString* accessGroup = [self getKeychainAccessGroup];
+    if (accessGroup != nil) {
+        [query setObject:accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
+    }
 
     NSMutableDictionary *changes = [NSMutableDictionary dictionary];
     [changes setObject:[password dataUsingEncoding:NSUTF8StringEncoding] forKey:(__bridge id)kSecValueData];
@@ -164,6 +193,12 @@
     [dict setObject:[password dataUsingEncoding:NSUTF8StringEncoding] forKey:(__bridge id)kSecValueData];
     [dict setObject:(__bridge id)sacRef forKey:(__bridge id)kSecAttrAccessControl];
     [dict setObject:reason forKey:(__bridge id)kSecUseOperationPrompt];
+
+    // Add custom access group if specified
+    NSString* accessGroup = [self getKeychainAccessGroup];
+    if (accessGroup != nil) {
+        [dict setObject:accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
+    }
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         OSStatus status = SecItemAdd((__bridge CFDictionaryRef)dict, nil);
@@ -201,6 +236,12 @@
     [dict setObject:[self getAppName] forKey:(__bridge id) kSecAttrService];
     //[dict setObject:reason forKey:(__bridge id)kSecUseOperationPrompt];
 
+    // Add custom access group if specified
+    NSString* accessGroup = [self getKeychainAccessGroup];
+    if (accessGroup != nil) {
+        [dict setObject:accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
+    }
+
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 
         OSStatus status = SecItemDelete((__bridge CFDictionaryRef)dict);
@@ -225,6 +266,12 @@
     [dict setObject:account forKey:(__bridge id)kSecAttrAccount];
     [dict setObject:[self getAppName] forKey:(__bridge id) kSecAttrService];
     [dict setObject:reason forKey:(__bridge id)kSecUseOperationPrompt];
+
+    // Add custom access group if specified
+    NSString* accessGroup = [self getKeychainAccessGroup];
+    if (accessGroup != nil) {
+        [dict setObject:accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
+    }
 
     dispatch_async(dispatch_get_main_queue(), ^{
         CFTypeRef dataRef = NULL;

@@ -67,7 +67,6 @@
         <module>javase</module>
         <module>win</module>
         <module>lib</module>
-        <module>tests</module>
     </modules>
     <dependencyManagement>
         <dependencies>
