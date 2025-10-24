@@ -46,7 +46,7 @@
     </scm>
 	  
     <properties>
-        <cn1.plugin.version>7.0.55</cn1.plugin.version>
+        <cn1.plugin.version>7.0.201</cn1.plugin.version>
         <cn1.version>7.0.71</cn1.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	      
@@ -231,7 +231,7 @@
         </profiles>
         <servers>
             <server>
-              <id>nexus-staging</id>
+              <id>central</id>
               <username>YOUR_USERNAME</username>
               <password>YOUR_PASSWORD</password>
             </server>
@@ -246,7 +246,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.4</version>
+                        <version>3.2.7</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -256,19 +256,27 @@
                                 </goals>
                                 <configuration>
                                     <passphrase>${gpg.passphrase}</passphrase>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.6.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
-    <distributionManagement>
-        <repository>
-            <id>nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 </project>
