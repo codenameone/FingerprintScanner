@@ -170,7 +170,7 @@ The security settings on the passwords are:
 ----
 SecAccessControlRef sacRef = SecAccessControlCreateWithFlags(kCFAllocatorDefault,
     kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-    kSecAccessControlTouchIDCurrentSet, 
+    kSecAccessControlTouchIDCurrentSet,
     nil
 );
 ----
@@ -180,6 +180,159 @@ For more details on what these mean, see the following documentation pages:
 . https://developer.apple.com/documentation/security/secaccesscontrolref?language=objc[SecAccessControlRef]
 . https://developer.apple.com/documentation/security/ksecattraccessiblewhenpasscodesetthisdeviceonly?language=objc[kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly]
 . https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/ksecaccesscontroltouchidcurrentset?language=objc[kSecAccessControlTouchIDCurrentSet]
+
+==== Sharing Keychain Items with App Extensions
+
+By default, keychain items stored by the Fingerprint API are only accessible from the main app. To share keychain items with app extensions (such as Action Extensions, Share Extensions, or other extension types), you can specify a shared keychain access group.
+
+This is particularly useful for scenarios like:
+
+* Apple Wallet provisioning flows that require an Action Extension to access authentication tokens
+* Share Extensions that need to authenticate with stored credentials
+* Today Widget Extensions that display authenticated content
+
+===== Step 1: Configure Keychain Access Group Entitlement
+
+Add the keychain access group to your Codename One project using the `ios.keychainAccessGroup` build hint. This can be set in your project's `codenameone_settings.properties` file or through the Codename One Settings GUI:
+
+----
+ios.keychainAccessGroup=TEAMID123.group.com.example.myapp
+----
+
+Replace `TEAMID123.group.com.example.myapp` with your full keychain access group identifier, which **must** include your Team ID (also called App Identifier Prefix). The access group format is:
+
+----
+[TEAM_ID].[group_name]
+----
+
+For example: `ABCDE12345.group.com.example.myapp`
+
+**Finding Your Team ID:**
+
+You can find your Team ID in:
+
+* Your Apple Developer account (under Membership details)
+* Xcode → Project Settings → Signing & Capabilities → Team (shown in parentheses)
+* Certificates, Identifiers & Profiles section of developer.apple.com
+
+The access group must be consistent across your main app and all extensions that need access.
+
+[IMPORTANT]
+====
+The Team ID prefix is **required** for keychain access groups to work properly. Without it, keychain operations will fail with errSecMissingEntitlement.
+====
+
+===== Step 2: Configure Extensions
+
+If you have app extensions, ensure they also have the same keychain access group entitlement configured. For native iOS extensions, add the keychain-access-groups entitlement in the extension's Info.plist or entitlements file:
+
+[source,xml]
+----
+<key>keychain-access-groups</key>
+<array>
+    <string>$(AppIdentifierPrefix)group.com.example.myapp</string>
+</array>
+----
+
+===== Step 3: Set the Display Property in Your Code
+
+Before using the Fingerprint API to store or retrieve passwords, set the keychain access group display property:
+
+[source,java]
+----
+import com.codename1.ui.Display;
+import com.codename1.fingerprint.Fingerprint;
+
+// Set this early in your app initialization, before using Fingerprint API
+Display.getInstance().setProperty(
+    "Fingerprint.ios.keychainAccessGroup",
+    "TEAMID123.group.com.example.myapp"
+);
+----
+
+[IMPORTANT]
+====
+* Set the property **before** calling any Fingerprint password methods (addPassword, getPassword, deletePassword)
+* Use the **exact same access group identifier including the Team ID prefix** that you configured in the build hint
+* The property must be set in both your main app and your extensions
+* The Team ID prefix is **required** - omitting it will cause keychain operations to fail
+====
+
+===== Complete Example
+
+Here's a complete example for a main app that shares credentials with an Action Extension:
+
+[source,java]
+----
+// In your main app's start() method or before using Fingerprint
+public void start() {
+    if (current != null) {
+        current.show();
+        return;
+    }
+
+    // Configure shared keychain access group (must include Team ID prefix)
+    Display.getInstance().setProperty(
+        "Fingerprint.ios.keychainAccessGroup",
+        "TEAMID123.group.com.example.myapp"
+    );
+
+    // Now store credentials that will be accessible from extensions
+    String account = "user@example.com";
+    String token = "auth_token_12345";
+
+    Fingerprint.addPassword(
+        "Storing credentials for extension access",
+        account,
+        token
+    ).onResult((success, err) -> {
+        if (err != null) {
+            Log.e(err);
+            ToastBar.showErrorMessage("Failed to store credentials: " + err.getMessage());
+        } else {
+            Log.p("Credentials stored in shared keychain group");
+            ToastBar.showInfoMessage("Credentials saved");
+        }
+    });
+}
+----
+
+In your extension code (whether native or using Codename One):
+
+[source,java]
+----
+// Set the same property in your extension (must include Team ID prefix)
+Display.getInstance().setProperty(
+    "Fingerprint.ios.keychainAccessGroup",
+    "TEAMID123.group.com.example.myapp"
+);
+
+// Retrieve credentials stored by the main app
+String account = "user@example.com";
+
+Fingerprint.getPassword(
+    "Authenticating from extension",
+    account
+).onResult((token, err) -> {
+    if (err != null) {
+        Log.e(err);
+        ToastBar.showErrorMessage("Failed to retrieve credentials: " + err.getMessage());
+    } else {
+        Log.p("Retrieved token: " + token);
+        // Use token for authentication in extension
+        performAuthentication(token);
+    }
+});
+----
+
+===== Important Notes
+
+* **Backward Compatibility**: If you don't set the `Fingerprint.ios.keychainAccessGroup` property, keychain items will be stored in the default app-specific keychain group (current behavior)
+* **Migration**: Items stored without an access group cannot be accessed when an access group is specified, and vice versa. If you're adding this feature to an existing app, users may need to re-authenticate
+* **Security**: All targets (app and extensions) with the shared access group entitlement can access the keychain items. Only share with trusted extensions
+* **Access Group Format**: Both the `ios.keychainAccessGroup` build hint AND the `Fingerprint.ios.keychainAccessGroup` property must include the full access group identifier with the Team ID prefix (e.g., `TEAMID123.group.com.example.myapp`)
+* **Team ID is Required**: The Team ID prefix is mandatory in both the build hint and the runtime property. Omitting it will cause keychain operations to fail with errSecMissingEntitlement
+* **Error Handling**: If your app attempts to use an access group it's not entitled to, keychain operations will fail with an error (errSecMissingEntitlement). Ensure the build hint and property match exactly
 
 
 == Working with the Sources
