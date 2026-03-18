@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  android-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Compute snapshot version
+        id: versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_version="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
+          if [[ "$current_version" == *-SNAPSHOT ]]; then
+            snapshot_version="$current_version"
+          else
+            snapshot_version="${current_version}-SNAPSHOT"
+          fi
+          echo "snapshot_version=$snapshot_version" >> "$GITHUB_OUTPUT"
+
+      - name: Build cn1lib snapshot into local Maven repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          mvn -B -ntp versions:set -DnewVersion="${{ steps.versions.outputs.snapshot_version }}" -DgenerateBackupPoms=false
+          mvn -B -ntp -DskipTests install
+
+      - name: Generate Android source project from sample app
+        working-directory: fingerprint-scanner-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x mvnw
+          ./mvnw -B -ntp package \
+            -DskipTests \
+            -Dopen=false \
+            -Dcodename1.platform=android \
+            -Dcodename1.buildTarget=android-source \
+            -Dfingerprint.scanner.version="${{ steps.versions.outputs.snapshot_version }}"
+
+      - name: Build generated Android Gradle project
+        working-directory: fingerprint-scanner-test/android/target/myappname-android-1.0-SNAPSHOT-android-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug
+
+  ios-compile:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Compute snapshot version
+        id: versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_version="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
+          if [[ "$current_version" == *-SNAPSHOT ]]; then
+            snapshot_version="$current_version"
+          else
+            snapshot_version="${current_version}-SNAPSHOT"
+          fi
+          echo "snapshot_version=$snapshot_version" >> "$GITHUB_OUTPUT"
+
+      - name: Build cn1lib snapshot into local Maven repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          mvn -B -ntp versions:set -DnewVersion="${{ steps.versions.outputs.snapshot_version }}" -DgenerateBackupPoms=false
+          mvn -B -ntp -DskipTests install
+
+      - name: Generate iOS source project from sample app
+        working-directory: fingerprint-scanner-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x mvnw
+          ./mvnw -B -ntp package \
+            -DskipTests \
+            -Dopen=false \
+            -Dcodename1.platform=ios \
+            -Dcodename1.buildTarget=ios-source \
+            -Dfingerprint.scanner.version="${{ steps.versions.outputs.snapshot_version }}"
+
+      - name: Build generated Xcode workspace
+        working-directory: fingerprint-scanner-test/ios/target/myappname-ios-1.0-SNAPSHOT-ios-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -workspace MyAppName.xcworkspace \
+            -scheme MyAppName \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
