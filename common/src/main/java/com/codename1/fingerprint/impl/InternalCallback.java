@@ -121,7 +121,11 @@ public class InternalCallback {
         }
         requests.remove(requestId);
         if (!req.isDone()) {
-            req.complete(value);
+            Display.getInstance().callSerially(() -> {
+                if (!req.isDone()) {
+                    req.complete(value);
+                }
+            });
         }
     }
     
@@ -132,11 +136,15 @@ public class InternalCallback {
         }
         requests.remove(requestId);
         if (!req.isDone()) {
-            if ("__CANCELLED__".equals(message)) {
-                req.cancel(true);
-            } else {
-                req.error(new RuntimeException(message));
-            }
+            Display.getInstance().callSerially(() -> {
+                if (!req.isDone()) {
+                    if ("__CANCELLED__".equals(message)) {
+                        req.cancel(true);
+                    } else {
+                        req.error(new RuntimeException(message));
+                    }
+                }
+            });
         }
     }
     
@@ -147,11 +155,15 @@ public class InternalCallback {
         }
         requests.remove(requestId);
         if (!req.isDone()) {
-            if ("__CANCELLED__".equals(message)) {
-                req.cancel(true);
-            } else {
-                req.error(new KeyRevokedException(message));
-            }
+            Display.getInstance().callSerially(() -> {
+                if (!req.isDone()) {
+                    if ("__CANCELLED__".equals(message)) {
+                        req.cancel(true);
+                    } else {
+                        req.error(new KeyRevokedException(message));
+                    }
+                }
+            });
         } 
     }
     
@@ -162,7 +174,11 @@ public class InternalCallback {
         }
         requests.remove(requestId);
         if (!req.isDone()) {
-            req.complete(success);
+            Display.getInstance().callSerially(() -> {
+                if (!req.isDone()) {
+                    req.complete(success);
+                }
+            });
         }
     }
 }
