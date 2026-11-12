@@ -26,7 +26,9 @@ jobs:
         with:
           # The action's default list includes the legacy 'tools' package, which current
           # SDK repositories no longer carry, so sdkmanager exits 1 before anything builds.
-          packages: platform-tools
+          # The generated project compiles against API 37, which sdkmanager only offers with
+          # a minor suffix: a bare 'platforms;android-37' exits 0 and installs nothing.
+          packages: platform-tools platforms;android-37.0
 
       - name: Set up Codename One Build Client
         shell: bash
