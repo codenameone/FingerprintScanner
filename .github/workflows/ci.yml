@@ -23,6 +23,10 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default list includes the legacy 'tools' package, which current
+          # SDK repositories no longer carry, so sdkmanager exits 1 before anything builds.
+          packages: platform-tools
 
       - name: Set up Codename One Build Client
         shell: bash
