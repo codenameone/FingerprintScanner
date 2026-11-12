@@ -257,6 +257,27 @@
         }
     });
 }
+// Attributes only: not guarded by the access-control list, so no prompt, and an item whose
+// biometric binding was invalidated is still found.
+-(BOOL)itemExists:(NSString*)account {
+    NSMutableDictionary *q = [NSMutableDictionary dictionary];
+    [q setObject:(__bridge id)kSecClassGenericPassword forKey:(__bridge id)kSecClass];
+    [q setObject:account forKey:(__bridge id)kSecAttrAccount];
+    [q setObject:[self getAppName] forKey:(__bridge id)kSecAttrService];
+    [q setObject:@YES forKey:(__bridge id)kSecReturnAttributes];
+    [q setObject:(__bridge id)kSecMatchLimitOne forKey:(__bridge id)kSecMatchLimit];
+    NSString* accessGroup = [self getKeychainAccessGroup];
+    if (accessGroup != nil) {
+        [q setObject:accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
+    }
+    CFTypeRef attrs = NULL;
+    OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)q, &attrs);
+    if (attrs != NULL) {
+        CFRelease(attrs);
+    }
+    return status == errSecSuccess;
+}
+
 -(void)getPassword:(int)requestId param1:(NSString*)reason param2:(NSString*)account {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 
@@ -284,6 +305,21 @@
         } else if (status == errSecUserCanceled) {
             JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), @"__CANCELLED__");
             com_codename1_fingerprint_impl_InternalCallback_requestError___int_java_lang_String(getThreadLocalData(), requestId, jErrorMessage);
+        } else if (status == errSecItemNotFound && [self itemExists:account]) {
+            // Stored under kSecAccessControlTouchIDCurrentSet: a change to the enrolled
+            // Face ID / Touch ID set invalidates the item. Its attributes remain but the
+            // data read answers errSecItemNotFound. Report it as revoked, as Android does,
+            // and delete it, since it can never be read again and would break a later add.
+            NSMutableDictionary *del = [NSMutableDictionary dictionary];
+            [del setObject:(__bridge id)kSecClassGenericPassword forKey:(__bridge id)kSecClass];
+            [del setObject:account forKey:(__bridge id)kSecAttrAccount];
+            [del setObject:[self getAppName] forKey:(__bridge id)kSecAttrService];
+            if (accessGroup != nil) {
+                [del setObject:accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
+            }
+            SecItemDelete((__bridge CFDictionaryRef)del);
+            JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), @"Key has been invalidated");
+            com_codename1_fingerprint_impl_InternalCallback_requestKeyRevokedError___int_java_lang_String(getThreadLocalData(), requestId, jErrorMessage);
         } else {
             NSString* errorMessage = [self errorString:status];
             JAVA_OBJECT jErrorMessage = fromNSString(getThreadLocalData(), errorMessage);

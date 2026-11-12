@@ -918,6 +918,14 @@ public class InternalFingerprintImpl {
         try {
             mKeyStore().load(null);
             key = (SecretKey) mKeyStore.getKey(KEY_ID, null);
+            if (key == null) {
+                // Android deletes a biometric-bound key outright when the user removes
+                // EVERY enrolled biometric, instead of failing with
+                // KeyPermanentlyInvalidatedException. Both callers that read keyRevoked
+                // return first when no password is stored, so an absent key there means
+                // a stored password whose key was taken away: revoked, not "No key found".
+                keyRevoked = true;
+            }
         } catch (KeyStoreException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "KeyStoreException";
         } catch (CertificateException e) {
