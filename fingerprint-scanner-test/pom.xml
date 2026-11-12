@@ -19,8 +19,8 @@
 <module>common</module>
 </modules>
   <properties>
-    <cn1.plugin.version>7.0.228</cn1.plugin.version>
-    <cn1.version>7.0.228</cn1.version>
+    <cn1.plugin.version>7.0.281</cn1.plugin.version>
+    <cn1.version>7.0.281</cn1.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.8</java.version>
     <java-tests.version>11</java-tests.version>
@@ -32,6 +32,20 @@
     <cn1app.name>myappname</cn1app.name>
     <fingerprint.scanner.version>1.1.4</fingerprint.scanner.version>
   </properties>
+  <!-- Codename One releases are published to repo.codenameone.com, not Maven Central,
+       which only has versions from before the cutover. -->
+  <repositories>
+    <repository>
+      <id>codenameone</id>
+      <url>https://repo.codenameone.com/maven2</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>codenameone</id>
+      <url>https://repo.codenameone.com/maven2</url>
+    </pluginRepository>
+  </pluginRepositories>
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -107,8 +121,6 @@
       </plugin>
     </plugins>
   </build>
-  <repositories/>
-  <pluginRepositories/>
   <profiles>
     <profile>
       <id>javascript</id>

@@ -22,13 +22,14 @@
  */
 package com.codename1.fingerprint.impl;
 
-import android.hardware.fingerprint.FingerprintManager;
+// FingerprintManager was removed in API 37; the Compat class keeps API 23-28 devices
+// working and compiles against every platform (Codename One issue #5701).
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import com.codename1.impl.android.AndroidNativeUtil;
 import com.codename1.impl.android.AndroidImplementation;
 
 import android.os.Build;
 import android.os.CancellationSignal;
-import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
@@ -37,7 +38,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
-import android.hardware.fingerprint.FingerprintManager.CryptoObject;
 import android.os.Looper;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
@@ -62,7 +62,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 
 public class InternalFingerprintImpl {
-    private FingerprintManager mFingerPrintManager;
+    private FingerprintManagerCompat mFingerPrintManager;
     private BiometricManager mBiometricManager;
     private KeyGenerator mKeyGenerator;
     private static final String KEY_ID = "FingerprintScannerKey";
@@ -71,6 +71,19 @@ public class InternalFingerprintImpl {
     private KeyStore mKeyStore;
     private Cipher mCipher;
     private static CancellationSignal cancellationSignal;
+
+    /// The Compat authenticate takes the support library's CancellationSignal. The
+    /// platform one is what cancellationSignal holds and what cancel() calls, so the
+    /// Compat signal follows it.
+    private static android.support.v4.os.CancellationSignal compatSignal(CancellationSignal cancel) {
+        final android.support.v4.os.CancellationSignal compat = new android.support.v4.os.CancellationSignal();
+        cancel.setOnCancelListener(new CancellationSignal.OnCancelListener() {
+            public void onCancel() {
+                compat.cancel();
+            }
+        });
+        return compat;
+    }
 
 
 
@@ -97,9 +110,18 @@ public class InternalFingerprintImpl {
                         boolean canAuthenticate = mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
                         if (canAuthenticate) {
                             if (packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
-                                FingerprintManager fingerprintManager = (FingerprintManager)AndroidNativeUtil.getActivity().getSystemService(Activity.FINGERPRINT_SERVICE);
-                                if (fingerprintManager.hasEnrolledFingerprints()) {
+                                if (Build.VERSION.SDK_INT >= 37) {
+                                    // FingerprintManagerCompat reaches the platform FingerprintManager, which API 37
+                                    // removed: it throws NoClassDefFoundError there, and the catch below then skipped
+                                    // the face and iris checks too. canAuthenticate() already said a biometric is
+                                    // enrolled, and per-modality enrolment is not exposed on these releases, so the
+                                    // fingerprint feature is the best answer available.
                                     paramBuilder.append("touch ");
+                                } else {
+                                    FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());
+                                    if (fingerprintManager.hasEnrolledFingerprints()) {
+                                        paramBuilder.append("touch ");
+                                    }
                                 }
                             }
                             if (packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)) {
@@ -126,8 +148,7 @@ public class InternalFingerprintImpl {
                         return;
                     }
                     try {
-                        mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
-                                getSystemService(Activity.FINGERPRINT_SERVICE);
+                        mFingerPrintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());
 
                         if (mFingerPrintManager.isHardwareDetected() &&
                                 mFingerPrintManager.hasEnrolledFingerprints()) {
@@ -224,7 +245,7 @@ public class InternalFingerprintImpl {
                 final CancellationSignal cs = new CancellationSignal();
                 cancellationSignal = cs;
 
-                AuthenticationCallback callback = new AuthenticationCallback() {
+                FingerprintManagerCompat.AuthenticationCallback callback = new FingerprintManagerCompat.AuthenticationCallback() {
                     int failures;
                     public void onAuthenticationError(int errorCode, CharSequence errString) {
                         InternalCallback.scanFail();
@@ -244,13 +265,13 @@ public class InternalFingerprintImpl {
                         }
                     }
 
-                    public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+                    public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
                         cs.cancel();
                         InternalCallback.scanSuccess();
                     }
                 };
 
-                mFingerPrintManager.authenticate(null, cs, 0, callback, null);
+                mFingerPrintManager.authenticate(null, 0, compatSignal(cs), callback, null);
             }
         });
     }
@@ -267,8 +288,7 @@ public class InternalFingerprintImpl {
                 return false;
             }
             try {
-                mFingerPrintManager = (FingerprintManager)AndroidNativeUtil.getActivity().
-                        getSystemService(Activity.FINGERPRINT_SERVICE);
+                mFingerPrintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());
 
                 return mFingerPrintManager.isHardwareDetected() &&
                         mFingerPrintManager.hasEnrolledFingerprints();
@@ -500,7 +520,7 @@ public class InternalFingerprintImpl {
                     }
                     final CancellationSignal cs = new CancellationSignal();
                     cancellationSignal = cs;
-                    AuthenticationCallback callback = new AuthenticationCallback() {
+                    FingerprintManagerCompat.AuthenticationCallback callback = new FingerprintManagerCompat.AuthenticationCallback() {
                         int failures;
                         public void onAuthenticationError(int errorCode, CharSequence errString) {
 
@@ -522,7 +542,7 @@ public class InternalFingerprintImpl {
                             //}
                         }
 
-                        public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+                        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
                             cs.cancel();
                             byte[] enc = new byte[0];
                             try {
@@ -567,8 +587,8 @@ public class InternalFingerprintImpl {
 
 
                     }
-                    CryptoObject crypto = new CryptoObject(mCipher());
-                    mFingerPrintManager.authenticate(crypto, cs, 0, callback, null);
+                    FingerprintManagerCompat.CryptoObject crypto = new FingerprintManagerCompat.CryptoObject(mCipher());
+                    mFingerPrintManager.authenticate(crypto, 0, compatSignal(cs), callback, null);
                 }
             });
 
@@ -602,6 +622,14 @@ public class InternalFingerprintImpl {
         final SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
         if (sharedPref.getString("fing_iv" + key, null) == null) {
             InternalCallback.requestError(requestId,"The specified item could not be found in the keychain.");
+            return false;
+        }
+        // Before the availability check: when the user deleted EVERY biometric, nothing
+        // is enrolled, so that check fails and the password would be reported as "not
+        // available" -- although Android has already deleted its key and it can never be
+        // read again, even after re-enrolment. A stored password with no key is revoked.
+        if (getSecretKey() == null && keyRevoked) {
+            InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
             return false;
         }
         if (isBiometricAuthAvailable()) {
@@ -736,6 +764,14 @@ public class InternalFingerprintImpl {
             InternalCallback.requestError(requestId,"The specified item could not be found in the keychain.");
             return false;
         }
+        // Before the availability check: when the user deleted EVERY biometric, nothing
+        // is enrolled, so that check fails and the password would be reported as "not
+        // available" -- although Android has already deleted its key and it can never be
+        // read again, even after re-enrolment. A stored password with no key is revoked.
+        if (getSecretKey() == null && keyRevoked) {
+            InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
+            return false;
+        }
         if (isFingerprintAuthAvailable()) {
             SecretKey secretKey = getSecretKey();
 
@@ -770,7 +806,7 @@ public class InternalFingerprintImpl {
                     }
                     final CancellationSignal cs = new CancellationSignal();
                     cancellationSignal = cs;
-                    AuthenticationCallback callback = new AuthenticationCallback() {
+                    FingerprintManagerCompat.AuthenticationCallback callback = new FingerprintManagerCompat.AuthenticationCallback() {
                         int failures;
 
                         public void onAuthenticationError(int errorCode, CharSequence errString) {
@@ -792,7 +828,7 @@ public class InternalFingerprintImpl {
 
                         }
 
-                        public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+                        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
                             cs.cancel();
                             Cipher cipher = result.getCryptoObject().getCipher();
 
@@ -830,8 +866,8 @@ public class InternalFingerprintImpl {
 
                     }
 
-                    CryptoObject crypto = new CryptoObject(mCipher());
-                    mFingerPrintManager.authenticate(crypto, cs, 0, callback, null);
+                    FingerprintManagerCompat.CryptoObject crypto = new FingerprintManagerCompat.CryptoObject(mCipher());
+                    mFingerPrintManager.authenticate(crypto, 0, compatSignal(cs), callback, null);
                 }
             });
 
@@ -918,6 +954,14 @@ public class InternalFingerprintImpl {
         try {
             mKeyStore().load(null);
             key = (SecretKey) mKeyStore.getKey(KEY_ID, null);
+            if (key == null) {
+                // Android deletes a biometric-bound key outright when the user removes
+                // EVERY enrolled biometric, instead of failing with
+                // KeyPermanentlyInvalidatedException. Both callers that read keyRevoked
+                // return first when no password is stored, so an absent key there means
+                // a stored password whose key was taken away: revoked, not "No key found".
+                keyRevoked = true;
+            }
         } catch (KeyStoreException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "KeyStoreException";
         } catch (CertificateException e) {
