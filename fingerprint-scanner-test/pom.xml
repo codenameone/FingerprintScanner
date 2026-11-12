@@ -32,6 +32,20 @@
     <cn1app.name>myappname</cn1app.name>
     <fingerprint.scanner.version>1.1.4</fingerprint.scanner.version>
   </properties>
+  <!-- Codename One releases are published to repo.codenameone.com, not Maven Central,
+       which only has versions from before the cutover. -->
+  <repositories>
+    <repository>
+      <id>codenameone</id>
+      <url>https://repo.codenameone.com/maven2</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>codenameone</id>
+      <url>https://repo.codenameone.com/maven2</url>
+    </pluginRepository>
+  </pluginRepositories>
   <dependencyManagement>
     <dependencies>
       <dependency>
