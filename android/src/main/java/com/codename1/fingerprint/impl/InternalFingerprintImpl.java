@@ -110,9 +110,18 @@ public class InternalFingerprintImpl {
                         boolean canAuthenticate = mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
                         if (canAuthenticate) {
                             if (packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
-                                FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());
-                                if (fingerprintManager.hasEnrolledFingerprints()) {
+                                if (Build.VERSION.SDK_INT >= 37) {
+                                    // FingerprintManagerCompat reaches the platform FingerprintManager, which API 37
+                                    // removed: it throws NoClassDefFoundError there, and the catch below then skipped
+                                    // the face and iris checks too. canAuthenticate() already said a biometric is
+                                    // enrolled, and per-modality enrolment is not exposed on these releases, so the
+                                    // fingerprint feature is the best answer available.
                                     paramBuilder.append("touch ");
+                                } else {
+                                    FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());
+                                    if (fingerprintManager.hasEnrolledFingerprints()) {
+                                        paramBuilder.append("touch ");
+                                    }
                                 }
                             }
                             if (packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)) {
