@@ -604,6 +604,14 @@ public class InternalFingerprintImpl {
             InternalCallback.requestError(requestId,"The specified item could not be found in the keychain.");
             return false;
         }
+        // Before the availability check: when the user deleted EVERY biometric, nothing
+        // is enrolled, so that check fails and the password would be reported as "not
+        // available" -- although Android has already deleted its key and it can never be
+        // read again, even after re-enrolment. A stored password with no key is revoked.
+        if (getSecretKey() == null && keyRevoked) {
+            InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
+            return false;
+        }
         if (isBiometricAuthAvailable()) {
             SecretKey secretKey = getSecretKey();
 
@@ -734,6 +742,14 @@ public class InternalFingerprintImpl {
         final SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
         if (sharedPref.getString("fing_iv" + key, null) == null) {
             InternalCallback.requestError(requestId,"The specified item could not be found in the keychain.");
+            return false;
+        }
+        // Before the availability check: when the user deleted EVERY biometric, nothing
+        // is enrolled, so that check fails and the password would be reported as "not
+        // available" -- although Android has already deleted its key and it can never be
+        // read again, even after re-enrolment. A stored password with no key is revoked.
+        if (getSecretKey() == null && keyRevoked) {
+            InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
             return false;
         }
         if (isFingerprintAuthAvailable()) {
