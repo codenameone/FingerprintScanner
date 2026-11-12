@@ -137,8 +137,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # A workspace is generated only when the project uses CocoaPods; current
+          # builders write a plain project otherwise.
+          if [ -d MyAppName.xcworkspace ]; then
+            container=(-workspace MyAppName.xcworkspace)
+          else
+            container=(-project MyAppName.xcodeproj)
+          fi
           xcodebuild \
-            -workspace MyAppName.xcworkspace \
+            "${container[@]}" \
             -scheme MyAppName \
             -configuration Debug \
             -sdk iphonesimulator \
