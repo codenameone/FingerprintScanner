@@ -1,5 +1,46 @@
 = Fingerprint Scanner
 
+IMPORTANT: *This cn1lib is discontinued.* Codename One now has biometric
+authentication and biometric-protected storage built into the core, in the
+`com.codename1.security` package. New projects should use that API instead, and
+existing projects should migrate to it. This library receives no further
+features; the last release fixes only the issues listed under
+<<final-release>>.
+
+== Migrating to the core API
+
+[cols="1,1",options="header"]
+|===
+| This cn1lib | Core (`com.codename1.security`)
+| `Fingerprint.isAvailable()` | `Biometrics.getInstance().canAuthenticate()`
+| `Fingerprint.scanFingerprint(reason, onSuccess, onFail)` | `Biometrics.getInstance().authenticate(reason)`
+| `Fingerprint.addPassword(reason, account, password)` | `SecureStorage.getInstance().set(reason, account, value)`
+| `Fingerprint.getPassword(reason, account)` | `SecureStorage.getInstance().get(reason, account)`
+| `Fingerprint.deletePassword(reason, account)` | `SecureStorage.getInstance().remove(reason, account)`
+| `KeyRevokedException` | `BiometricException` with `BiometricError.KEY_REVOKED`
+|===
+
+The core API returns `AsyncResource` objects instead of taking callbacks, and
+reports failures through the typed `BiometricError` enum. See the
+https://www.codenameone.com/developer-guide/#_biometric_authentication[Biometric
+Authentication chapter of the developer guide] for the details. Remove this
+cn1lib from the project when you migrate: the core injects the permissions and
+build hints it needs by itself.
+
+[[final-release]]
+== Final release (1.1.5)
+
+* `getPassword` reports `KeyRevokedException` when the user removes or re-enrolls
+  biometrics, on both Android and iOS. Previously Android raised a generic error
+  when every biometric was removed, and iOS always did.
+* Builds against Android API 37, which removed `FingerprintManager`.
+
+Download `fingerprint-scanner-1.1.5.cn1lib` from the
+https://github.com/codenameone/FingerprintScanner/releases[releases page], put it
+in your project's `lib` directory (`common/lib` in a Maven project, or use
+`mvn cn1:install-cn1lib -Dfile=...`), and refresh libraries.
+
+
 Fingerprint scanning and biometric support for https://www.codenameone.com[Codename One].
 
 image::images/fingerprint-scanner-feature.jpg[]
@@ -343,14 +384,8 @@ Fingerprint.getPassword(
 
 See https://shannah.github.io/codenameone-maven-manual/[the Codename One Maven Manual] for more information about working with Codename One Maven projects.
 
-=== Releasing to Maven Central
+=== Building the cn1lib
 
-1. Set up your ~/.m2/settings.xml file with credentials for Maven central.
-2. Run `bash update-version.sh $NEW_VERSION` where `$NEW_VERSION` is the new version.  E.g. "1.1".
-3. `git push && git push --tags` to push the new version tag to git.
-4. `mvn deploy -Psign-artifacts`
-5. Log into Maven central and complete the release.
-6. Run `bash update-version $NEW_SNAPSHOT_VERSION` where `$NEW_SNAPSHOT_VERSION` is the next snapshot version  E.g. 1.2-SNAPSHOT.
-
-
-
+Run `mvn package` from the project root. The library is written to
+`common/target/fingerprint-scanner-<version>.cn1lib`; attach that file to a
+GitHub release. The library is no longer published to Maven Central.
