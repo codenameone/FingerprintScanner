@@ -30,7 +30,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
     <cn1app.name>myappname</cn1app.name>
-    <fingerprint.scanner.version>1.1.4</fingerprint.scanner.version>
+    <fingerprint.scanner.version>1.1.5</fingerprint.scanner.version>
   </properties>
   <!-- Codename One releases are published to repo.codenameone.com, not Maven Central,
        which only has versions from before the cutover. -->
