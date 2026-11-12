@@ -121,8 +121,6 @@
       </plugin>
     </plugins>
   </build>
-  <repositories/>
-  <pluginRepositories/>
   <profiles>
     <profile>
       <id>javascript</id>
