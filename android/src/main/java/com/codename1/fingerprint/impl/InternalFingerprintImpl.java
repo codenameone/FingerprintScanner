@@ -40,6 +40,7 @@ import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.os.Looper;
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.RequiresApi;
@@ -339,19 +340,6 @@ public class InternalFingerprintImpl {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void tryAddPassword29(String account, String password, SharedPreferences.Editor editor) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = mCipher();
-        cipher.init(Cipher.ENCRYPT_MODE, getSecretKey());
-        byte[] enc = cipher.doFinal(password.getBytes());
-
-        editor.putString("fing" + account, Base64.encodeToString(enc, Base64.DEFAULT));
-        editor.putString("fing_iv" + account,
-                Base64.encodeToString(cipher.getIV(), Base64.DEFAULT));
-
-        editor.apply();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.Q)
     private boolean addPassword29(final int requestId, final String reason, final String account, final String password, final boolean requestAuth, final int depth) {
         if (android.os.Build.VERSION.SDK_INT < 23) {
             Log.p("minimum SDK version 23 required");
@@ -363,8 +351,12 @@ public class InternalFingerprintImpl {
         if (isBiometricAuthAvailable()) {
             SecretKey secretKey = getSecretKey();
 
+            if (secretKey == null && keyUnverifiedState()) {
+                InternalCallback.requestError(requestId, "Cannot confirm the key is bound to the enrolled biometrics");
+                return false;
+            }
             if (secretKey == null) {
-                if (createKey()) {
+                if (createReplacementKey()) {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
@@ -406,7 +398,11 @@ public class InternalFingerprintImpl {
                         }
 
                         public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
-                            cs.cancel();
+                            // Cancelled AFTER the cipher work: cancelling first may tear the
+                            // keystore operation down under the doFinal the authentication
+                            // unlocked, the suspected cause of issue #8.
+                            try {
+                            
                             byte[] enc = new byte[0];
                             try {
                                 Cipher cipher = result.getCryptoObject().getCipher();
@@ -415,34 +411,34 @@ public class InternalFingerprintImpl {
                                 editor.putString("fing" + account, Base64.encodeToString(enc, Base64.DEFAULT));
                                 editor.putString("fing_iv" + account,
                                         Base64.encodeToString(cipher.getIV(), Base64.DEFAULT));
+                                revokedPrefs().edit().remove(account).apply();
 
                                 editor.apply();
                                 InternalCallback.requestComplete(requestId, true);
                             } catch (Throwable e) {
 
-                                // https://github.com/codenameone/FingerprintScanner/issues/8
-                                removePermanentlyInvalidatedKey();
-                                mCipher = null;
-
-                                try {
-                                    createKey();
-                                    tryAddPassword29(account, password, editor);
-                                    InternalCallback.requestComplete(requestId, true);
-                                    return;
-                                } catch (Exception ex) {
-                                    Log.e(ex);
-                                    InternalCallback.requestError(requestId, String.valueOf("Failed to add password: " + ex.getMessage()));
-                                    return;
+                                // Never fall back to encrypting without the prompt, as this
+                                // once did for issue #8: that needs an unbound key. Retry once
+                                // with a fresh key and a fresh prompt (the Samsung 8.0.0 case,
+                                // https://issuetracker.google.com/u/0/issues/65578763).
+                                if (depth == 0 && isKeyInvalidation(e)) {
+                                    removePermanentlyInvalidatedKey();
+                                    addPassword29(requestId, reason, account, password, requestAuth, depth + 1);
+                                } else {
+                                    Log.e(e);
+                                    InternalCallback.requestError(requestId, "Failed to add password: " + e.getMessage());
                                 }
-
                             }
 
+                                                    } finally {
+                                cs.cancel();
+                            }
                         }
                     };
                     if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                         // Could not initialize cipher, key must have been invalidated
-                        if (!createKey()) {
-                            InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
+                        if (!createReplacementKey()) {
+                            InternalCallback.requestError(requestId, "Failed to initialize the cipher.");
                             return;
                         }
                         if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
@@ -497,8 +493,12 @@ public class InternalFingerprintImpl {
         if (isFingerprintAuthAvailable()) {
             SecretKey secretKey = getSecretKey();
 
+            if (secretKey == null && keyUnverifiedState()) {
+                InternalCallback.requestError(requestId, "Cannot confirm the key is bound to the enrolled biometrics");
+                return false;
+            }
             if (secretKey == null) {
-                if (createKey()) {
+                if (createReplacementKey()) {
                     secretKey = getSecretKey();
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("Failed to create key"));
@@ -543,7 +543,11 @@ public class InternalFingerprintImpl {
                         }
 
                         public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
-                            cs.cancel();
+                            // Cancelled AFTER the cipher work: cancelling first may tear the
+                            // keystore operation down under the doFinal the authentication
+                            // unlocked, the suspected cause of issue #8.
+                            try {
+                            
                             byte[] enc = new byte[0];
                             try {
                                 Cipher cipher = result.getCryptoObject().getCipher();
@@ -552,11 +556,12 @@ public class InternalFingerprintImpl {
                                 editor.putString("fing" + account, Base64.encodeToString(enc, Base64.DEFAULT));
                                 editor.putString("fing_iv" + account,
                                         Base64.encodeToString(cipher.getIV(), Base64.DEFAULT));
+                                revokedPrefs().edit().remove(account).apply();
 
                                 editor.apply();
                                 InternalCallback.requestComplete(requestId, true);
                             } catch (Throwable e) {
-                                if (depth == 0) {
+                                if (depth == 0 && isKeyInvalidation(e)) {
                                     // This typically shouldn't happen.  If the key was invalidated, it should have caught
                                     // it before the authentication step in initCipher.  BUT in some cases, e.g. Samsung
                                     // phones on 8.0.0, it somehow passes that initial step without failure, but fails
@@ -572,12 +577,15 @@ public class InternalFingerprintImpl {
                                 }
                             }
 
+                                                    } finally {
+                                cs.cancel();
+                            }
                         }
                     };
                     if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
                         // Could not initialize cipher, key must have been invalidated
-                        if (!createKey()) {
-                            InternalCallback.requestError(requestId, "Failed to create a new key after old key failed to initialize the cipher.  Something must be wrong.");
+                        if (!createReplacementKey()) {
+                            InternalCallback.requestError(requestId, "Failed to initialize the cipher.");
                             return;
                         }
                         if(!initCipher(Cipher.ENCRYPT_MODE, account)) {
@@ -602,6 +610,7 @@ public class InternalFingerprintImpl {
     public void deletePassword(int requestId, String reason, String account) {
         SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
         sharedPref.edit().remove("fing"+account).remove("fing_iv"+account).apply();
+        revokedPrefs().edit().remove(account).apply();
         InternalCallback.requestComplete(requestId, true);
     }
 
@@ -621,14 +630,14 @@ public class InternalFingerprintImpl {
 
         final SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
         if (sharedPref.getString("fing_iv" + key, null) == null) {
-            InternalCallback.requestError(requestId,"The specified item could not be found in the keychain.");
+            revokedOrMissing(requestId, sharedPref, key);
             return false;
         }
         // Before the availability check: when the user deleted EVERY biometric, nothing
         // is enrolled, so that check fails and the password would be reported as "not
         // available" -- although Android has already deleted its key and it can never be
         // read again, even after re-enrolment. A stored password with no key is revoked.
-        if (getSecretKey() == null && keyRevoked) {
+        if (getSecretKey() == null && keyRevokedState()) {
             InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
             return false;
         }
@@ -644,7 +653,7 @@ public class InternalFingerprintImpl {
                     return false;
                 }
                 */
-                if (keyRevoked) {
+                if (keyRevokedState()) {
                     InternalCallback.requestKeyRevokedError(requestId, String.valueOf("Key has been invalidated"));
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("No key found"));
@@ -689,23 +698,36 @@ public class InternalFingerprintImpl {
                         }
 
                         public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
-                            cs.cancel();
-                            Cipher cipher = result.getCryptoObject().getCipher();
-
-
+                            // Cancelled AFTER the cipher work: cancelling first may tear the
+                            // keystore operation down under the doFinal the authentication
+                            // unlocked, the suspected cause of issue #8.
                             try {
+                            
+                            try {
+                                if (result.getCryptoObject() == null || result.getCryptoObject().getCipher() == null) {
+                                    InternalCallback.requestError(requestId, "Authenticated cipher missing");
+                                    return;
+                                }
+                                Cipher cipher = result.getCryptoObject().getCipher();
                                 byte[] enc = Base64.decode(sharedPref.getString("fing" + key, ""), Base64.DEFAULT);
 
                                 byte[] decrypted = cipher.doFinal(enc);
                                 String decryptedStr = new String(decrypted);
                                 InternalCallback.requestSuccess(requestId, decryptedStr);
                             } catch (Throwable e) {
-
+                                if (isKeyInvalidation(e)) {
+                                    removePermanentlyInvalidatedKey();
+                                    InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
+                                    return;
+                                }
                                 Log.e(e);
                                 InternalCallback.requestError(requestId, e.getMessage());
                             }
 
 
+                                                    } finally {
+                                cs.cancel();
+                            }
                         }
                     };
                     if(!initCipher(Cipher.DECRYPT_MODE, key)) {
@@ -761,14 +783,14 @@ public class InternalFingerprintImpl {
 
         final SharedPreferences sharedPref = AndroidNativeUtil.getActivity().getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME,Context.MODE_PRIVATE);
         if (sharedPref.getString("fing_iv" + key, null) == null) {
-            InternalCallback.requestError(requestId,"The specified item could not be found in the keychain.");
+            revokedOrMissing(requestId, sharedPref, key);
             return false;
         }
         // Before the availability check: when the user deleted EVERY biometric, nothing
         // is enrolled, so that check fails and the password would be reported as "not
         // available" -- although Android has already deleted its key and it can never be
         // read again, even after re-enrolment. A stored password with no key is revoked.
-        if (getSecretKey() == null && keyRevoked) {
+        if (getSecretKey() == null && keyRevokedState()) {
             InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
             return false;
         }
@@ -784,7 +806,7 @@ public class InternalFingerprintImpl {
                     return false;
                 }
                 */
-                if (keyRevoked) {
+                if (keyRevokedState()) {
                     InternalCallback.requestKeyRevokedError(requestId, String.valueOf("Key has been invalidated"));
                 } else {
                     InternalCallback.requestError(requestId, String.valueOf("No key found"));
@@ -829,23 +851,36 @@ public class InternalFingerprintImpl {
                         }
 
                         public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
-                            cs.cancel();
-                            Cipher cipher = result.getCryptoObject().getCipher();
-
-
+                            // Cancelled AFTER the cipher work: cancelling first may tear the
+                            // keystore operation down under the doFinal the authentication
+                            // unlocked, the suspected cause of issue #8.
                             try {
+                            
+                            try {
+                                if (result.getCryptoObject() == null || result.getCryptoObject().getCipher() == null) {
+                                    InternalCallback.requestError(requestId, "Authenticated cipher missing");
+                                    return;
+                                }
+                                Cipher cipher = result.getCryptoObject().getCipher();
                                 byte[] enc = Base64.decode(sharedPref.getString("fing" + key, ""), Base64.DEFAULT);
 
                                 byte[] decrypted = cipher.doFinal(enc);
                                 String decryptedStr = new String(decrypted);
                                 InternalCallback.requestSuccess(requestId, decryptedStr);
                             } catch (Throwable e) {
-
+                                if (isKeyInvalidation(e)) {
+                                    removePermanentlyInvalidatedKey();
+                                    InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
+                                    return;
+                                }
                                 Log.e(e);
                                 InternalCallback.requestError(requestId, e.getMessage());
                             }
 
 
+                                                    } finally {
+                                cs.cancel();
+                            }
                         }
                     };
                     if(!initCipher(Cipher.DECRYPT_MODE, key)) {
@@ -896,11 +931,17 @@ public class InternalFingerprintImpl {
     }
 
     private KeyGenParameterSpec.Builder decorate(KeyGenParameterSpec.Builder builder) {
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            // We don't add setUserAuthenticationRequired on 33+
-            // because of https://github.com/codenameone/FingerprintScanner/issues/8
-        } else  if (Build.VERSION.SDK_INT >= 23){
-            builder.setUserAuthenticationRequired(true);
+        // Bound on EVERY API level, and revoked by a new enrolment. From 1.1.3 to
+        // 1.1.5 the binding was skipped on API 33+ to hide issue #8 ("Key user not
+        // authenticated"). An unbound key decrypts with no authentication and is never
+        // invalidated, so a fingerprint enrolled by anyone who knows the device PIN
+        // unlocked every stored password while the prompt still looked like protection.
+        // #8's cause was never established: the prompt already carried the cipher as its
+        // CryptoObject. The likeliest suspect, cancelling the signal before doFinal, is
+        // gone (see onAuthenticationSucceeded).
+        builder.setUserAuthenticationRequired(true);
+        if (Build.VERSION.SDK_INT >= 24) {
+            builder.setInvalidatedByBiometricEnrollment(true);
         }
 
         return builder;
@@ -945,9 +986,28 @@ public class InternalFingerprintImpl {
         }
         return isKeyCreated;
     }
-    private boolean keyRevoked = false;
+    // Per thread: initCipher runs getSecretKey on the UI thread while a request thread may
+    // sit between its own getSecretKey and reading these. As shared fields, one reset the
+    // other's answer -- an unverified key read as absent and was replaced.
+    private static final ThreadLocal<boolean[]> KEY_STATE = new ThreadLocal<boolean[]>() {
+        @Override
+        protected boolean[] initialValue() {
+            return new boolean[2];
+        }
+    };
+
+    private static boolean keyRevokedState() {
+        return KEY_STATE.get()[0];
+    }
+
+    private static boolean keyUnverifiedState() {
+        return KEY_STATE.get()[1];
+    }
+
     private SecretKey getSecretKey() {
-        keyRevoked = false;
+        boolean[] state = KEY_STATE.get();
+        state[0] = false;
+        state[1] = false;
         String errorMessage = "";
         String getSecretKeyExceptionErrorPrefix = "Failed to get SecretKey from KeyStore: ";
         SecretKey key = null;
@@ -960,21 +1020,35 @@ public class InternalFingerprintImpl {
                 // KeyPermanentlyInvalidatedException. Both callers that read keyRevoked
                 // return first when no password is stored, so an absent key there means
                 // a stored password whose key was taken away: revoked, not "No key found".
-                keyRevoked = true;
+                // Not wiped here: below API 31 getKey also answers null when the keystore
+                // cannot be reached. The passwords are dropped when a new key replaces it.
+                state[0] = true;
+            } else if (bindingOf(key) == BINDING_UNKNOWN && Build.VERSION.SDK_INT >= 33) {
+                // Only 33+ ever had unbound keys: one whose binding cannot be read there is
+                // neither used (it may be one) nor deleted (on a guess).
+                state[1] = true;
+                return null;
+            } else if (bindingOf(key) == BINDING_NONE) {
+                // Created unbound on API 33+ by 1.1.3 - 1.1.5. It cannot be trusted with
+                // what it holds: delete it and report the passwords as revoked, so the app
+                // asks the user to set biometric login up again.
+                removePermanentlyInvalidatedKey();
+                state[0] = true;
+                return null;
             }
         } catch (KeyStoreException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "KeyStoreException";
         } catch (CertificateException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "CertificateException";
         } catch (UnrecoverableKeyException e) {
-            keyRevoked = true;
+            state[0] = true;
             errorMessage = getSecretKeyExceptionErrorPrefix + "UnrecoverableKeyException";
         } catch (IOException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "IOException";
         } catch (NoSuchAlgorithmException e) {
             errorMessage = getSecretKeyExceptionErrorPrefix + "NoSuchAlgorithmException";
         } catch (UnrecoverableEntryException e) {
-            keyRevoked = true;
+            state[0] = true;
             errorMessage = getSecretKeyExceptionErrorPrefix + "UnrecoverableEntryException";
         }
         if (key == null) {
@@ -1013,6 +1087,10 @@ public class InternalFingerprintImpl {
             String initCipherExceptionErrorPrefix = "Failed to init Cipher: ";
             try {
                 SecretKey key = impl.getSecretKey();
+                // A new Cipher for every operation. One shared instance re-initialised by
+                // a second request while the first prompt was still up handed the first
+                // prompt's callback a cipher in the wrong mode or with the wrong IV.
+                impl.mCipher = null;
 
                 if (mode == Cipher.ENCRYPT_MODE) {
                     SecureRandom r = new SecureRandom();
@@ -1057,11 +1135,161 @@ public class InternalFingerprintImpl {
     }
 
     private void removePermanentlyInvalidatedKey() {
+        synchronized (KEY_LOCK) {
+            removeKeyUnderLock();
+        }
+    }
+
+    private void removeKeyUnderLock() {
         try {
             mKeyStore().deleteEntry(KEY_ID);
+            if (mKeyStore().containsAlias(KEY_ID)) {
+                // Still there: so are the passwords it can read. Never wipe them for a
+                // key that was not removed.
+                Log.p("The invalidated key could not be removed.");
+                return;
+            }
             Log.p("Permanently invalidated key was removed.");
         } catch (KeyStoreException e) {
             Log.e(e);
+            return;
+        }
+        revokeAllPasswords();
+    }
+
+    private static final Object KEY_LOCK = new Object();
+
+    /**
+     * Creates a key only when there is none, and drops every password stored under the
+     * one that is gone. Never overwrites an existing alias: a key that is present but
+     * failed (a keystore hiccup, an UnrecoverableKeyException) still reads every stored
+     * password, and replacing it would destroy them on a guess. A key proven invalidated
+     * has already been deleted by removePermanentlyInvalidatedKey.
+     *
+     * <p>Not guarded: an add whose doFinal finished just before another request replaced
+     * the key commits ciphertext under the dead key, and that one account then fails to
+     * decrypt instead of reporting revoked. Core's SecureStorage closes that window with
+     * a key generation; this lib is discontinued in its favour and does not.</p>
+     */
+    private boolean createReplacementKey() {
+        synchronized (KEY_LOCK) {
+            // A concurrent request may have created it since this one looked.
+            if (getSecretKey() != null) {
+                return true;
+            }
+            try {
+                mKeyStore().load(null);
+                if (mKeyStore().containsAlias(KEY_ID)) {
+                    return false;
+                }
+            } catch (Exception e) {
+                Log.e(e);
+                return false;
+            }
+            if (!createKey()) {
+                return false;
+            }
+            revokeAllPasswords();
+            return true;
+        }
+    }
+
+    /**
+     * Revoked markers live in their own file, keyed by the bare account: in the main
+     * file a prefix would share the "fing" + account namespace of the values.
+     */
+    private static final String REVOKED_PREFS_NAME = SHARED_PREFS_NAME + ".revoked";
+
+    private static SharedPreferences revokedPrefs() {
+        return AndroidNativeUtil.getActivity().getApplicationContext()
+                .getSharedPreferences(REVOKED_PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    /**
+     * The keystore's own failure under doFinal. That is android.security.KeyStoreException
+     * (public only from API 33, hidden before) -- not java.security.KeyStoreException,
+     * which an instanceof against the imported name tested and so never matched.
+     */
+    private static boolean isKeystoreError(Throwable t) {
+        return t != null && t.getClass().getName().endsWith("KeyStoreException");
+    }
+
+    /**
+     * Whether a failure says the KEY is finished, as opposed to this one operation.
+     * Deleting the key drops every stored password, so only these two shapes do it:
+     * the exception Android raises for it, and a keystore error under doFinal.
+     */
+    private static boolean isKeyInvalidation(Throwable t) {
+        Throwable c = t;
+        for (int depth = 0; c != null && depth < 8; depth++) {
+            if (c instanceof KeyPermanentlyInvalidatedException) {
+                return true;
+            }
+            // The Samsung 8.0.0 quirk, and only there: elsewhere this shape is also "user
+            // not authenticated" or a pruned operation, one failed request that must not
+            // delete the key every password shares.
+            if ((Build.VERSION.SDK_INT == 26 || Build.VERSION.SDK_INT == 27)
+                    && c instanceof IllegalBlockSizeException
+                    && isKeystoreError(c.getCause())) {
+                return true;
+            }
+            if (c.getCause() == c) {
+                break;
+            }
+            c = c.getCause();
+        }
+        return false;
+    }
+
+    /**
+     * Drops every password encrypted under the key, which is gone, leaving a revoked
+     * marker. Left in place, the next addPassword creates a new key and every OTHER
+     * account's old password then fails to decrypt under it with a padding error,
+     * which reads as a generic failure instead of a revocation.
+     */
+    private void revokeAllPasswords() {
+        SharedPreferences sp = AndroidNativeUtil.getActivity().getApplicationContext()
+                .getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor revoked = revokedPrefs().edit();
+        SharedPreferences.Editor values = sp.edit();
+        for (String k : sp.getAll().keySet()) {
+            if (k.startsWith("fing_iv")) {
+                // An account starting "_iv" has its VALUE key here too ("fing" + "_iv..."):
+                // only a key with a value under the derived account is an IV.
+                String account = k.substring("fing_iv".length());
+                if (sp.contains("fing" + account)) {
+                    revoked.putBoolean(account, true);
+                    values.remove(k).remove("fing" + account);
+                }
+            }
+        }
+        // Markers first: a crash between the two commits leaves an account both stored
+        // and marked, which a successful read or write clears, rather than gone unmarked.
+        revoked.commit();
+        values.commit();
+    }
+
+    private void revokedOrMissing(int requestId, SharedPreferences sp, String key) {
+        if (revokedPrefs().contains(key)) {
+            InternalCallback.requestKeyRevokedError(requestId, "Key has been invalidated");
+        } else {
+            InternalCallback.requestError(requestId, "The specified item could not be found in the keychain.");
+        }
+    }
+
+    private static final int BINDING_BOUND = 0;
+    private static final int BINDING_NONE = 1;
+    private static final int BINDING_UNKNOWN = 2;
+
+    /** Whether the keystore enforces user authentication for the key, if it can say. */
+    private static int bindingOf(SecretKey k) {
+        try {
+            SecretKeyFactory f = SecretKeyFactory.getInstance(k.getAlgorithm(), ANDROID_KEY_STORE);
+            KeyInfo info = (KeyInfo) f.getKeySpec(k, KeyInfo.class);
+            return info.isUserAuthenticationRequired() ? BINDING_BOUND : BINDING_NONE;
+        } catch (Throwable t) {
+            Log.e(t);
+            return BINDING_UNKNOWN;
         }
     }
 
