@@ -28,14 +28,19 @@ cn1lib from the project when you migrate: the core injects the permissions and
 build hints it needs by itself.
 
 [[final-release]]
-== Final release (1.1.5)
+== Final release (1.1.6)
 
 * `getPassword` reports `KeyRevokedException` when the user removes or re-enrolls
   biometrics, on both Android and iOS. Previously Android raised a generic error
   when every biometric was removed, and iOS always did.
 * Builds against Android API 37, which removed `FingerprintManager`.
+* Security fix (1.1.6): on Android 13 and later the key is bound to the enrolled
+  biometrics, so enrolling a new fingerprint raises `KeyRevokedException`. Before,
+  any fingerprint enrolled on the device could read the stored passwords.
+  Passwords stored by 1.1.3 - 1.1.5 on Android 13+ report `KeyRevokedException`
+  once after updating; ask the user to set biometric login up again.
 
-Download `fingerprint-scanner-1.1.5.cn1lib` from the
+Download `fingerprint-scanner-1.1.6.cn1lib` from the
 https://github.com/codenameone/FingerprintScanner/releases[releases page], put it
 in your project's `lib` directory (`common/lib` in a Maven project, or use
 `mvn cn1:install-cn1lib -Dfile=...`), and refresh libraries.
