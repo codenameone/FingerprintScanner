@@ -140,6 +140,13 @@ public class Fingerprint {
     
     /**
      * Checks if touch ID authentication is available on this device.
+     *
+     * <p>Note: Android 17 (API 37) removed the API that reports whether a fingerprint is enrolled. On Android 17
+     * and later this returns true only on a device whose sole biometric hardware is a fingerprint sensor. On a device
+     * that also has face or iris hardware it returns false even if a fingerprint is enrolled, since the
+     * platform cannot say which biometric is enrolled. Use {@link #isAvailable() } to check that some biometric
+     * can be used.</p>
+     *
      * @return True if touch ID is available
      */
     public static boolean isTouchIDAvailable() {
