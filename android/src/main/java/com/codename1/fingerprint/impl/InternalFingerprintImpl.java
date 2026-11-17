@@ -114,10 +114,20 @@ public class InternalFingerprintImpl {
                                 if (Build.VERSION.SDK_INT >= 37) {
                                     // FingerprintManagerCompat reaches the platform FingerprintManager, which API 37
                                     // removed: it throws NoClassDefFoundError there, and the catch below then skipped
-                                    // the face and iris checks too. canAuthenticate() already said a biometric is
-                                    // enrolled, and per-modality enrolment is not exposed on these releases, so the
-                                    // fingerprint feature is the best answer available.
-                                    paramBuilder.append("touch ");
+                                    // the face and iris checks too. Per-modality enrolment is not exposed on these
+                                    // releases; canAuthenticate() only says SOME biometric is enrolled. That proves a
+                                    // fingerprint only when fingerprint is the sole biometric hardware. With face or
+                                    // iris hardware too, the enrolled one may not be a fingerprint, so "touch" is left
+                                    // out rather than guessed: isTouchIDAvailable() must not answer true for a phone
+                                    // with only a face enrolled (it never did before API 37). The price is a false
+                                    // negative on multi-sensor phones, documented on Fingerprint.isTouchIDAvailable();
+                                    // isAvailable() is unaffected because "face"/"iris" is still reported there.
+                                    // BiometricManager.getStrings() button labels hint at the modality but are
+                                    // localized text, not an API, so they are not matched.
+                                    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)
+                                            && !packageManager.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+                                        paramBuilder.append("touch ");
+                                    }
                                 } else {
                                     FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());
                                     if (fingerprintManager.hasEnrolledFingerprints()) {
