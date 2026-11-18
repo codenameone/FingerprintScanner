@@ -127,6 +127,12 @@ public class InternalFingerprintImpl {
                                     if (!packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)
                                             && !packageManager.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
                                         paramBuilder.append("touch ");
+                                    } else {
+                                        // Some biometric is enrolled and it may be any of the sensors. This token
+                                        // is what makes Fingerprint.getPromptType() answer BIOMETRICS instead of
+                                        // reading the "face" below as an enrolled face. It matches none of the
+                                        // words the older methods search for (BiometricPromptType.UNDETERMINED).
+                                        paramBuilder.append("mixed ");
                                     }
                                 } else {
                                     FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(AndroidNativeUtil.getActivity());

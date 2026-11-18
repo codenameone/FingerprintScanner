@@ -113,6 +113,43 @@ public class Fingerprint {
     }
     
     /**
+     * What the application should call biometric authentication on this device: a fingerprint,
+     * the face, or biometrics in general when the device cannot say which. Use it to pick the
+     * wording and icon of the application's own UI. It answers the same question on every
+     * platform and OS release, so there is no need to check either.
+     *
+     * <pre>{@code
+     * switch (Fingerprint.getPromptType()) {
+     *     case FINGERPRINT: label = "Sign in with fingerprint"; break;
+     *     case FACE: label = "Sign in with face"; break;
+     *     case BIOMETRICS: label = "Sign in with biometrics"; break;
+     *     default: label = null; // NONE: offer the password only
+     * }
+     * }</pre>
+     *
+     * <p>On Android 17 and later a device with a fingerprint sensor and face or iris hardware
+     * answers {@link BiometricPromptType#BIOMETRICS}: the platform no longer reports which of
+     * them is enrolled. Before Android 17 a device with an enrolled fingerprint answers
+     * {@link BiometricPromptType#FINGERPRINT} whether or not it also has face hardware, as
+     * {@link #isTouchIDAvailable()} does; if the user enrolled a face as well, the system prompt
+     * may accept either.</p>
+     *
+     * <p>On Android {@link BiometricPromptType#FACE} means the device has face hardware, no iris
+     * hardware, no enrolled fingerprint, and some enrolled biometric. Storing and reading passwords needs a
+     * biometric Android classes as strong, which a face is not on every device; there those
+     * calls fail as they do today, whatever this method answers.</p>
+     *
+     * @return The type to present, {@link BiometricPromptType#NONE} when {@link #isAvailable()}
+     * is false.
+     */
+    public static BiometricPromptType getPromptType() {
+        // One availability check: on Android it blocks on the UI thread, and it is what
+        // publishes the type list read on the next line.
+        boolean available = isAvailable();
+        return BiometricPromptType.fromTypes(available, CN.getProperty(DISPLAY_KEY, ""));
+    }
+
+    /**
      * Checks if Face ID authentication is available on this device.
      * 
      * <p>Note: On Android 9 and 10, this will always return false even if the device supports facial recognition.  This is because the

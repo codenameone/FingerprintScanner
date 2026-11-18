@@ -37,6 +37,10 @@ build hints it needs by itself.
 * Android 17 fix (1.1.7): `isTouchIDAvailable()` no longer answers true when only
   a face is enrolled. On Android 17 phones that also have face or iris hardware it
   answers false; use `isAvailable()` to check that some biometric can be used.
+* `Fingerprint.getPromptType()` answers `FINGERPRINT`, `FACE`, `BIOMETRICS` or `NONE`:
+  what to call the authentication in the application's own UI, on every platform and
+  OS release. It is `BIOMETRICS` where the device cannot say which kind is enrolled,
+  and `NONE` where biometrics cannot be used.
 * Security fix (1.1.6): on Android 13 and later the key is bound to the enrolled
   biometrics, so enrolling a new fingerprint raises `KeyRevokedException`. Before,
   any fingerprint enrolled on the device could read the stored passwords.
