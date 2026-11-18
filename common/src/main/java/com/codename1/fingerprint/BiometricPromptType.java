@@ -75,6 +75,7 @@ public enum BiometricPromptType {
      *
      * @param available Whether biometric authentication can be used at all.
      * @param types The space separated type list, may be null.
+     * @return The single answer, never null.
      */
     static BiometricPromptType fromTypes(boolean available, String types) {
         if (!available) {

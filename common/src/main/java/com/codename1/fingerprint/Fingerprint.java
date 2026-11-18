@@ -134,8 +134,8 @@ public class Fingerprint {
      * {@link #isTouchIDAvailable()} does; if the user enrolled a face as well, the system prompt
      * may accept either.</p>
      *
-     * <p>On Android {@link BiometricPromptType#FACE} means the device has face hardware, no
-     * enrolled fingerprint, and some enrolled biometric. Storing and reading passwords needs a
+     * <p>On Android {@link BiometricPromptType#FACE} means the device has face hardware, no iris
+     * hardware, no enrolled fingerprint, and some enrolled biometric. Storing and reading passwords needs a
      * biometric Android classes as strong, which a face is not on every device; there those
      * calls fail as they do today, whatever this method answers.</p>
      *
