@@ -113,6 +113,35 @@ public class Fingerprint {
     }
     
     /**
+     * What the application should call biometric authentication on this device: a fingerprint,
+     * the face, or biometrics in general when the device cannot say which. Use it to pick the
+     * wording and icon of the application's own UI. It answers the same question on every
+     * platform and OS release, so there is no need to check either.
+     *
+     * <pre>{@code
+     * switch (Fingerprint.getBiometricType()) {
+     *     case FINGERPRINT: label = "Sign in with fingerprint"; break;
+     *     case FACE: label = "Sign in with face"; break;
+     *     case BIOMETRICS: label = "Sign in with biometrics"; break;
+     *     default: label = null; // NONE: offer the password only
+     * }
+     * }</pre>
+     *
+     * <p>On Android 17 and later a device with a fingerprint sensor and face or iris hardware
+     * answers {@link BiometricType#BIOMETRICS}: the platform no longer reports which of them is
+     * enrolled. On Android a device with an enrolled fingerprint answers
+     * {@link BiometricType#FINGERPRINT} whether or not it also has face hardware.</p>
+     *
+     * @return The type to present, {@link BiometricType#NONE} when {@link #isAvailable()} is false.
+     */
+    public static BiometricType getBiometricType() {
+        // One availability check: on Android it blocks on the UI thread, and it is what
+        // publishes the type list read on the next line.
+        boolean available = isAvailable();
+        return BiometricType.fromTypes(available, CN.getProperty(DISPLAY_KEY, ""));
+    }
+
+    /**
      * Checks if Face ID authentication is available on this device.
      * 
      * <p>Note: On Android 9 and 10, this will always return false even if the device supports facial recognition.  This is because the
