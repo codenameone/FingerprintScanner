@@ -24,12 +24,12 @@ package com.codename1.fingerprint;
 
 /**
  * What an application should call the device's biometric authentication in its own UI: the
- * wording and icon of a "sign in with ..." button. Returned by {@link Fingerprint#getBiometricType()}.
+ * wording and icon of a "sign in with ..." button. Returned by {@link Fingerprint#getPromptType()}.
  *
  * <p>It is one answer for every platform and OS release, so an application does not need to
  * check either.</p>
  */
-public enum BiometricType {
+public enum BiometricPromptType {
     /**
      * Biometric authentication cannot be used: no hardware, or nothing enrolled.
      */
@@ -46,10 +46,12 @@ public enum BiometricType {
     FACE,
 
     /**
-     * Biometric authentication can be used, and the device does not say which kind the user
-     * enrolled. Use neutral wording ("Use biometrics"); the system prompt directs the user to the
-     * right sensor. Android 17 and later answer this on a device that has a fingerprint sensor
-     * together with face or iris hardware.
+     * Biometric authentication can be used and there is no single name for it. Use neutral
+     * wording ("Use biometrics"); the system prompt directs the user to the right sensor.
+     *
+     * <p>This is every available case that is not one of the two above: a device that does not
+     * say which kind the user enrolled (Android 17 and later with a fingerprint sensor together
+     * with face or iris hardware), an iris scanner, and a kind this library has no name for.</p>
      */
     BIOMETRICS;
 
@@ -68,10 +70,13 @@ public enum BiometricType {
      * {@code isFaceIDAvailable()} already gets. On Android "face" means face hardware plus some
      * enrolled biometric, so a known enrolled fingerprint is preferred to it.</p>
      *
+     * <p>The words are searched for, as the older methods do, so a new token must contain none
+     * of the existing ones.</p>
+     *
      * @param available Whether biometric authentication can be used at all.
      * @param types The space separated type list, may be null.
      */
-    static BiometricType fromTypes(boolean available, String types) {
+    static BiometricPromptType fromTypes(boolean available, String types) {
         if (!available) {
             return NONE;
         }

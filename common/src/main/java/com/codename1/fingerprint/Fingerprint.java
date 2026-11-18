@@ -119,7 +119,7 @@ public class Fingerprint {
      * platform and OS release, so there is no need to check either.
      *
      * <pre>{@code
-     * switch (Fingerprint.getBiometricType()) {
+     * switch (Fingerprint.getPromptType()) {
      *     case FINGERPRINT: label = "Sign in with fingerprint"; break;
      *     case FACE: label = "Sign in with face"; break;
      *     case BIOMETRICS: label = "Sign in with biometrics"; break;
@@ -128,17 +128,25 @@ public class Fingerprint {
      * }</pre>
      *
      * <p>On Android 17 and later a device with a fingerprint sensor and face or iris hardware
-     * answers {@link BiometricType#BIOMETRICS}: the platform no longer reports which of them is
-     * enrolled. On Android a device with an enrolled fingerprint answers
-     * {@link BiometricType#FINGERPRINT} whether or not it also has face hardware.</p>
+     * answers {@link BiometricPromptType#BIOMETRICS}: the platform no longer reports which of
+     * them is enrolled. Before Android 17 a device with an enrolled fingerprint answers
+     * {@link BiometricPromptType#FINGERPRINT} whether or not it also has face hardware, as
+     * {@link #isTouchIDAvailable()} does; if the user enrolled a face as well, the system prompt
+     * may accept either.</p>
      *
-     * @return The type to present, {@link BiometricType#NONE} when {@link #isAvailable()} is false.
+     * <p>On Android {@link BiometricPromptType#FACE} means the device has face hardware, no
+     * enrolled fingerprint, and some enrolled biometric. Storing and reading passwords needs a
+     * biometric Android classes as strong, which a face is not on every device; there those
+     * calls fail as they do today, whatever this method answers.</p>
+     *
+     * @return The type to present, {@link BiometricPromptType#NONE} when {@link #isAvailable()}
+     * is false.
      */
-    public static BiometricType getBiometricType() {
+    public static BiometricPromptType getPromptType() {
         // One availability check: on Android it blocks on the UI thread, and it is what
         // publishes the type list read on the next line.
         boolean available = isAvailable();
-        return BiometricType.fromTypes(available, CN.getProperty(DISPLAY_KEY, ""));
+        return BiometricPromptType.fromTypes(available, CN.getProperty(DISPLAY_KEY, ""));
     }
 
     /**
